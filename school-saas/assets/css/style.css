@@ -1,0 +1,1123 @@
+/* ==========================================================================
+   ISOLATED SCHOOL MANAGEMENT SAAS MARKETING DESIGN SYSTEM
+   Prefix: school-saas-*
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+/* --- Complete CSS Reset --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body.school-saas-body {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+}
+
+body.school-saas-body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #334155;
+    background-color: #ffffff;
+    line-height: 1.6;
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    color: #0f172a;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+a {
+    color: #2563eb;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: #1d4ed8;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+ul, ol {
+    list-style: none;
+}
+
+/* --- Container & Utilities --- */
+.school-saas-container {
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.school-saas-section {
+    padding: 90px 0;
+    position: relative;
+}
+
+.school-saas-bg-light {
+    background-color: #f8fafc;
+}
+
+.school-saas-section-header {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto 55px auto;
+}
+
+.school-saas-tag {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #2563eb;
+    background-color: #eff6ff;
+    padding: 6px 16px;
+    border-radius: 9999px;
+    margin-bottom: 14px;
+}
+
+.school-saas-title {
+    font-size: 38px;
+    color: #0f172a;
+    margin-bottom: 14px;
+    letter-spacing: -0.5px;
+}
+
+.school-saas-desc {
+    font-size: 16.5px;
+    color: #64748b;
+    line-height: 1.7;
+}
+
+/* --- Buttons --- */
+.school-saas-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 26px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    justify-content: center;
+}
+
+.school-saas-btn-primary {
+    background-color: #2563eb;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+}
+
+.school-saas-btn-primary:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-2deg);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+}
+
+.school-saas-btn-secondary {
+    background-color: #0f172a;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
+}
+
+.school-saas-btn-secondary:hover {
+    background-color: #1e293b;
+    transform: translateY(-2deg);
+}
+
+.school-saas-btn-outline {
+    background-color: transparent;
+    color: #0f172a !important;
+    border-color: #cbd5e1;
+}
+
+.school-saas-btn-outline:hover {
+    border-color: #2563eb;
+    color: #2563eb !important;
+    background-color: #eff6ff;
+    transform: translateY(-2deg);
+}
+
+.school-saas-btn-white {
+    background-color: #ffffff;
+    color: #0f172a !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+.school-saas-btn-white:hover {
+    background-color: #f8fafc;
+    color: #2563eb !important;
+    transform: translateY(-2deg);
+}
+
+/* --- Header & Navigation --- */
+.school-saas-header {
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.school-saas-header-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+}
+
+.school-saas-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+}
+
+.school-saas-brand-logo-img {
+    height: 46px;
+    width: auto;
+    max-width: 60px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
+}
+
+.school-saas-brand-text-block {
+    text-align: center;
+}
+
+.school-saas-brand-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+}
+
+.school-saas-brand-sub {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.school-saas-nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.school-saas-nav-list {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.school-saas-nav-link {
+    font-family: 'Outfit', sans-serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #334155;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.25s ease;
+}
+
+.school-saas-nav-link:hover {
+    color: #2563eb;
+    background-color: #eff6ff;
+}
+
+.school-saas-hamburger {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #0f172a;
+    cursor: pointer;
+    padding: 6px;
+}
+
+/* --- 1. Hero Section --- */
+.school-saas-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    padding: 90px 0 110px 0;
+}
+
+.school-saas-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 650px;
+    height: 650px;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.18) 0%, rgba(15, 23, 42, 0) 70%);
+    pointer-events: none;
+}
+
+.school-saas-hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 50px;
+    align-items: center;
+}
+
+.school-saas-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background-color: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #38bdf8;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 9999px;
+    margin-bottom: 20px;
+}
+
+.school-saas-hero-title {
+    font-size: 48px;
+    color: #ffffff;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+}
+
+.school-saas-hero-subtitle {
+    font-size: 18px;
+    color: #cbd5e1;
+    line-height: 1.7;
+    margin-bottom: 35px;
+}
+
+.school-saas-hero-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.school-saas-hero-mockup-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+}
+
+.school-saas-mockup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+}
+
+.school-saas-mockup-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.school-saas-mockup-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.dot-red { background-color: #ef4444; }
+.dot-yellow { background-color: #f59e0b; }
+.dot-green { background-color: #10b981; }
+
+.school-saas-mockup-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.school-saas-mockup-stat {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.school-saas-mockup-stat-num {
+    font-family: 'Outfit', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.school-saas-mockup-stat-label {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* --- 2. Trusted Statistics --- */
+.school-saas-stats-section {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 55px 0;
+}
+
+.school-saas-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    text-align: center;
+}
+
+.school-saas-stat-number {
+    font-family: 'Outfit', sans-serif;
+    font-size: 38px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.school-saas-stat-label {
+    font-size: 13.5px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* --- 3. Platform Overview --- */
+.school-saas-overview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+}
+
+.school-saas-overview-content h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    color: #0f172a;
+}
+
+.school-saas-overview-content p {
+    font-size: 16px;
+    color: #475569;
+    line-height: 1.8;
+    margin-bottom: 25px;
+}
+
+.school-saas-overview-checklist {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 30px;
+}
+
+.school-saas-check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15.5px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.school-saas-check-item i {
+    color: #2563eb;
+    font-size: 18px;
+}
+
+.school-saas-overview-box {
+    background: #0f172a;
+    border-radius: 20px;
+    padding: 35px;
+    color: #ffffff;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+}
+
+.school-saas-overview-card-item {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.school-saas-overview-card-item:last-child {
+    margin-bottom: 0;
+}
+
+.school-saas-overview-card-icon {
+    width: 44px;
+    height: 44px;
+    background: #2563eb;
+    color: #ffffff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+/* --- 4. Core Features --- */
+.school-saas-features-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+}
+
+.school-saas-feature-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 30px 24px;
+    transition: all 0.3s ease;
+}
+
+.school-saas-feature-card:hover {
+    transform: translateY(-6deg);
+    border-color: #2563eb;
+    box-shadow: 0 15px 30px rgba(15, 23, 42, 0.08);
+}
+
+.school-saas-feature-icon {
+    width: 52px;
+    height: 52px;
+    background-color: #eff6ff;
+    color: #2563eb;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.school-saas-feature-card h3 {
+    font-size: 19px;
+    margin-bottom: 10px;
+}
+
+.school-saas-feature-card p {
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+/* --- 5. School Management Modules --- */
+.school-saas-modules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.school-saas-module-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 26px;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    transition: all 0.3s ease;
+}
+
+.school-saas-module-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+    transform: translateY(-3deg);
+}
+
+.school-saas-module-icon {
+    width: 48px;
+    height: 48px;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.school-saas-module-card:hover .school-saas-module-icon {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.school-saas-module-info h3 {
+    font-size: 18px;
+    margin-bottom: 6px;
+}
+
+.school-saas-module-info p {
+    font-size: 13.5px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* --- 6. Role-Based Dashboards --- */
+.school-saas-roles-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.school-saas-role-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.school-saas-role-card:hover {
+    border-color: #2563eb;
+    transform: translateY(-4deg);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05);
+}
+
+.school-saas-role-avatar {
+    width: 60px;
+    height: 60px;
+    background-color: #eff6ff;
+    color: #2563eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    margin: 0 auto 16px auto;
+}
+
+.school-saas-role-card h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.school-saas-role-card p {
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* --- 7. How It Works --- */
+.school-saas-steps-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    position: relative;
+}
+
+.school-saas-step-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 24px 18px;
+    text-align: center;
+    position: relative;
+}
+
+.school-saas-step-num {
+    width: 38px;
+    height: 38px;
+    background: #0f172a;
+    color: #ffffff;
+    border-radius: 50%;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px auto;
+    font-size: 16px;
+}
+
+.school-saas-step-card h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.school-saas-step-card p {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* --- 8. Benefits --- */
+.school-saas-benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+}
+
+.school-saas-benefit-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 28px;
+    transition: all 0.3s ease;
+}
+
+.school-saas-benefit-card:hover {
+    border-color: #10b981;
+    transform: translateY(-5deg);
+    box-shadow: 0 12px 25px rgba(16, 185, 129, 0.1);
+}
+
+.school-saas-benefit-icon {
+    font-size: 32px;
+    color: #10b981;
+    margin-bottom: 16px;
+}
+
+.school-saas-benefit-card h3 {
+    font-size: 19px;
+    margin-bottom: 10px;
+}
+
+.school-saas-benefit-card p {
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+/* --- 9. Static Dashboard Preview --- */
+.school-saas-preview-box {
+    background: #0f172a;
+    border-radius: 20px;
+    padding: 35px;
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+    color: #ffffff;
+}
+
+.school-saas-preview-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.school-saas-preview-widgets-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.school-saas-widget-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.school-saas-widget-val {
+    font-family: 'Outfit', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.school-saas-widget-lbl {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.school-saas-preview-charts-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 25px;
+}
+
+.school-saas-chart-box {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 22px;
+}
+
+.school-saas-chart-title {
+    font-size: 16px;
+    color: #ffffff;
+    margin-bottom: 16px;
+}
+
+.school-saas-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.school-saas-bar-label {
+    width: 70px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.school-saas-bar-track {
+    flex-grow: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.school-saas-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #38bdf8);
+    border-radius: 4px;
+}
+
+/* --- 10. Pricing Section --- */
+.school-saas-pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    align-items: stretch;
+}
+
+.school-saas-pricing-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.school-saas-pricing-card.featured {
+    border-color: #2563eb;
+    box-shadow: 0 15px 35px rgba(37, 99, 235, 0.15);
+    transform: translateY(-8px);
+}
+
+.school-saas-pricing-badge {
+    position: absolute;
+    top: -14px;
+    right: 28px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 14px;
+    border-radius: 9999px;
+}
+
+.school-saas-price-title {
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+.school-saas-price-amount {
+    font-family: 'Outfit', sans-serif;
+    font-size: 42px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 20px;
+}
+
+.school-saas-price-amount span {
+    font-size: 15px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.school-saas-price-features {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.school-saas-price-feature-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14.5px;
+    color: #334155;
+}
+
+.school-saas-price-feature-item i {
+    color: #10b981;
+}
+
+/* --- 11. Testimonials --- */
+.school-saas-testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+.school-saas-testimonial-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+}
+
+.school-saas-stars {
+    color: #f59e0b;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.school-saas-testimonial-card p {
+    font-size: 15px;
+    font-style: italic;
+    color: #334155;
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.school-saas-testimonial-author {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.school-saas-testimonial-role {
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* --- 12. FAQ Section --- */
+.school-saas-faq-accordion {
+    max-width: 800px;
+    margin: 0 auto;
+    display: grid;
+    gap: 16px;
+}
+
+.school-saas-faq-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.school-saas-faq-question {
+    width: 100%;
+    padding: 20px 24px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-family: 'Outfit', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.school-saas-faq-answer {
+    padding: 0 24px 20px 24px;
+    font-size: 15px;
+    color: #64748b;
+    line-height: 1.7;
+    display: none;
+}
+
+.school-saas-faq-item.active .school-saas-faq-answer {
+    display: block;
+}
+
+.school-saas-faq-item.active .school-saas-faq-question i {
+    transform: rotate(180deg);
+}
+
+/* --- 13. Final Call To Action --- */
+.school-saas-cta-banner {
+    background: linear-gradient(135deg, #2563eb 0%, #0f172a 100%);
+    color: #ffffff;
+    border-radius: 24px;
+    padding: 70px 40px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(37, 99, 235, 0.25);
+}
+
+.school-saas-cta-banner h2 {
+    color: #ffffff;
+    font-size: 38px;
+    margin-bottom: 16px;
+}
+
+.school-saas-cta-banner p {
+    color: #cbd5e1;
+    font-size: 18px;
+    max-width: 620px;
+    margin: 0 auto 35px auto;
+}
+
+/* --- 14. Footer --- */
+.school-saas-footer {
+    background-color: #0f172a;
+    color: #94a3b8;
+    padding: 80px 0 0 0;
+}
+
+.school-saas-footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+    gap: 40px;
+    margin-bottom: 60px;
+}
+
+.school-saas-footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.school-saas-footer-brand h3 {
+    color: #ffffff;
+    font-size: 22px;
+}
+
+.school-saas-footer-col h4 {
+    color: #ffffff;
+    font-size: 18px;
+    margin-bottom: 22px;
+}
+
+.school-saas-footer-links {
+    display: grid;
+    gap: 12px;
+}
+
+.school-saas-footer-links a {
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.school-saas-footer-links a:hover {
+    color: #ffffff;
+    padding-left: 4px;
+}
+
+.school-saas-social-links {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.school-saas-social-btn {
+    width: 38px;
+    height: 38px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.school-saas-social-btn:hover {
+    background: #2563eb;
+    color: #ffffff;
+    transform: translateY(-3deg);
+}
+
+.school-saas-footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 25px 0;
+    text-align: center;
+    font-size: 14px;
+    color: #64748b;
+}
+
+/* --- Responsive Layout --- */
+@media (max-width: 1024px) {
+    .school-saas-hero-grid, .school-saas-overview-grid, .school-saas-preview-charts-grid {
+        grid-template-columns: 1fr;
+    }
+    .school-saas-features-grid, .school-saas-modules-grid, .school-saas-roles-grid, .school-saas-benefits-grid, .school-saas-pricing-grid, .school-saas-testimonials-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .school-saas-stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .school-saas-steps-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .school-saas-footer-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .school-saas-nav-list {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: #ffffff;
+        flex-direction: column;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        border-top: 1px solid #e2e8f0;
+    }
+    .school-saas-nav-list.active {
+        display: flex;
+    }
+    .school-saas-hamburger {
+        display: block;
+    }
+    .school-saas-features-grid, .school-saas-modules-grid, .school-saas-roles-grid, .school-saas-benefits-grid, .school-saas-pricing-grid, .school-saas-testimonials-grid, .school-saas-footer-grid, .school-saas-stats-grid, .school-saas-steps-grid {
+        grid-template-columns: 1fr;
+    }
+    .school-saas-hero-title {
+        font-size: 34px;
+    }
+    .school-saas-title {
+        font-size: 28px;
+    }
+    .school-saas-preview-widgets-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
