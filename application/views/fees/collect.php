@@ -97,8 +97,11 @@ if ($extINTL == true) {
 							</div>
 						</div>
 					<?php if (get_permission('collect_fees', 'is_add')) { ?>
-						<button type="button" class="btn btn-default btn-sm mb-sm hidden-print" id="collectFees" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">
+						<button type="button" class="btn btn-default btn-sm mb-sm hidden-print mr-xs" id="collectFees" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">
 							<i class="fas fa-coins fa-fw"></i> Selected Fees Collect
+						</button>
+						<button type="button" class="btn btn-default btn-sm mb-sm hidden-print payReceiptPrintInv" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">
+							<i class="fas fa-print"></i> Selected Pay Receipt
 						</button>
 					<?php } ?>
 						<div class="table-responsive br-none">
@@ -108,7 +111,7 @@ if ($extINTL == true) {
 										<th id="cell-count" class="text-weight-semibold hidden-print">
 											<div class="checkbox-replace" >
 												<label class="i-checks" data-toggle="tooltip" data-original-title="Print Show / Hidden">
-													<input type="checkbox" class="fee-selectAll" checked><i></i>
+													<input type="checkbox" class="fee-selectAll"><i></i>
 												</label>
 											</div>
 										</th>
@@ -165,7 +168,7 @@ if ($extINTL == true) {
 									<tr>
 										<td class="hidden-print checked-area">
 											<div class="checkbox-replace">
-												<label class="i-checks"><input type="checkbox" name="cb_invoice" value="<?php echo $row['amount']; ?>" data-allocation-id="<?php echo $row['allocation_id'] ?>" data-fee-type-id="<?php echo $row['fee_type_id'] ?>" data-fee-type="general" data-transport-fd-id="0" checked><i></i></label>
+												<label class="i-checks"><input type="checkbox" name="cb_invoice" value="<?php echo $row['amount']; ?>" data-allocation-id="<?php echo $row['allocation_id'] ?>" data-fee-type-id="<?php echo $row['fee_type_id'] ?>" data-fee-type="general" data-transport-fd-id="0"><i></i></label>
 											</div>
 										</td>
 										<td class="hidden-print"><?php echo $count++;?></td>
@@ -222,7 +225,7 @@ if ($extINTL == true) {
 										<tr>
 											<td class="hidden-print checked-area">
 												<div class="checkbox-replace">
-													<label class="i-checks"><input type="checkbox" name="cb_invoice" value="<?php echo $value->route_fare; ?>" data-allocation-id="0" data-fee-type-id="0" data-fee-type="transport" data-transport-fd-id="<?php echo $value->id; ?>" checked><i></i></label>
+													<label class="i-checks"><input type="checkbox" name="cb_invoice" value="<?php echo $value->route_fare; ?>" data-allocation-id="0" data-fee-type-id="0" data-fee-type="transport" data-transport-fd-id="<?php echo $value->id; ?>"><i></i></label>
 												</div>
 											</td>
 											<td class="hidden-print"><?php echo $count++;?></td>
@@ -294,6 +297,7 @@ if ($extINTL == true) {
 						<div class="invoice-summary text-right mt-lg visible-print-block" id="invDetailsPrint"></div>
 					</div>
 					<div class="text-right mr-lg hidden-print">
+						<button type="button" class="btn btn-default mr-xs payReceiptPrintInv" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing"><i class="fas fa-print"></i> Selected Pay Receipt</button>
 						<button id="invoicePrint" class="btn btn-default ml-sm" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing"><i class="fas fa-print"></i> <?=translate('print')?></button>
 					</div>
 				</div>
@@ -380,7 +384,7 @@ if ($extINTL == true) {
 										<th id="cell-count" class="text-weight-semibold hidden-print">
 											<div class="checkbox-replace" >
 												<label class="i-checks" data-toggle="tooltip" data-original-title="Print Show / Hidden">
-													<input type="checkbox" class="fee-selectAll" checked> <i></i>
+													<input type="checkbox" class="fee-selectAll"> <i></i>
 												</label>
 											</div>
 										</th>
@@ -407,7 +411,7 @@ if ($extINTL == true) {
 									<tr>
 										<td class="hidden-print checked-area">
 											<div class="checkbox-replace">
-												<label class="i-checks"><input type="checkbox" name="cb_feePay" value="<?php echo $row['id']; ?>" checked><i></i></label>
+												<label class="i-checks"><input type="checkbox" name="cb_feePay" value="<?php echo $row['id']; ?>"><i></i></label>
 											</div>
 										</td>
 										<td class="text-weight-semibold text-dark"><?php echo $row['name']; ?></td>
@@ -446,7 +450,7 @@ if (moduleIsEnabled('transport')) {
 									<tr>
 										<td class="hidden-print checked-area">
 											<div class="checkbox-replace">
-												<label class="i-checks"><input type="checkbox" name="cb_feePay" value="<?php echo $row['id']; ?>" checked><i></i></label>
+												<label class="i-checks"><input type="checkbox" name="cb_feePay" value="<?php echo $row['id']; ?>"><i></i></label>
 											</div>
 										</td>
 										<td class="text-weight-semibold text-dark"><?php echo translate('transport_fees') ?></td>
@@ -586,7 +590,7 @@ if (moduleIsEnabled('transport')) {
 							</div>
 						</div>
 						<input type="hidden" name="branch_id" value="<?=$basic['branch_id']?>">
-						<input type="hidden" name="student_id" value="<?=$basic['id']?>">
+						<input type="hidden" name="student_id" value="<?=$basic['enroll_id']?>">
 						<footer class="panel-footer">
 							<div class="row">
 								<div class="col-md-offset-3 col-md-3">
@@ -662,7 +666,7 @@ if (moduleIsEnabled('transport')) {
 						</div>
 						<input type="hidden" name="invoice_id" value="<?php echo $basic['enroll_id']; ?>">
 						<input type="hidden" name="branch_id" value="<?=$basic['branch_id']?>">
-						<input type="hidden" name="student_id" value="<?=$basic['id']?>">
+						<input type="hidden" name="student_id" value="<?=$basic['enroll_id']?>">
 						<footer class="panel-footer">
 							<div class="row">
 								<div class="col-md-offset-3 col-md-3">
@@ -872,6 +876,50 @@ if (moduleIsEnabled('transport')) {
 	            array ["payment_id"] = paymentID;
 	            array ["allocationID"] = allocationID;
 	            array ["feeTypeID"] = feeTypeID;
+	            arrayData.push(array);
+        	}
+		});
+        if (arrayData.length === 0) {
+            alert("No Rows Selected.");
+            $btn.button('reset');
+        } else {
+        	$("#invDetailsPrint").html("");
+            $.ajax({
+                url: base_url + "fees/payReceiptPrint",
+                type: 'POST',
+                data: {
+					'student_id' : studentID,
+					'data': JSON.stringify(arrayData)
+            	},
+                dataType: "html",
+                cache: false,
+                success: function (response) {
+                    fn_printElem(response, true);
+                },
+                complete: function () {
+                	$btn.button('reset');
+                }
+            });
+        }
+	});
+
+	$('.payReceiptPrintInv').on('click', function(e) {
+		var $btn = $(this);
+		$btn.button('loading');
+		var arrayData = [];
+		$("#invoiceSummary tbody input[name='cb_invoice']").each(function() {
+			if($(this).is(':checked')) {
+				var allocationID = $(this).data("allocation-id");
+				var feeTypeID = $(this).data("fee-type-id");
+				var feeAmount = $(this).val();
+				var trans_fd_id = $(this).data("transport-fd-id");
+				var feeType = $(this).data("fee-type");
+	            array = {};
+	            array ["feeAmount"] = feeAmount;
+	            array ["allocationID"] = allocationID;
+	            array ["feeTypeID"] = feeTypeID;
+	            array ["trans_fd_id"] = trans_fd_id;
+	            array ["feeType"] = feeType;
 	            arrayData.push(array);
         	}
 		});

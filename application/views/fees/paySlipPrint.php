@@ -17,26 +17,24 @@ $currency_symbol = $global_config['currency_symbol'];
 $basic           = $this->fees_model->getInvoiceBasic($studentID);
 ?>
 <div class="row">
-<?php for ($i = 0; $i < 3; $i++) { ?>
-	<div class="col-xs-4">
+<?php 
+$copy_names = array('Student Copy', 'Office Copy');
+for ($i = 0; $i < count($copy_names); $i++) { 
+?>
+	<div class="col-xs-6">
 		<div class="invoice">
-			<?php
-			if ($i == 0) {
-				echo "<h4 class='text-center mb-none'>Student Copy</h4>";
-			} elseif ($i == 1) {
-				echo "<h4 class='text-center mb-none'>Bank Copy</h4>";
-			} elseif ($i == 2) {
-				echo "<h4 class='text-center mb-none'>Office Copy</h4>";
-			}
-			?>
+			<h4 class='text-center mb-none' style="font-weight: bold;"><?php echo $copy_names[$i]; ?></h4>
 			
 			<div class="bill-info">
 				<div class="row">
 					<div class="col-xs-12">
 						<div class="bill-data">
-							<address style="text-align: center;">
+							<div class="text-center mt-xs">
+								<img src="<?=$this->application_model->getBranchImage($basic['branch_id'], 'printing-logo')?>" style="max-height: 55px;" alt="Logo" />
+							</div>
+							<address style="text-align: center; margin-top: 5px;">
 								<?php
-								echo '<strong>' . $basic['school_name'] . '</strong><br/>';
+								echo '<strong style="font-size: 16px; display: block; margin-bottom: 2px;">' . $basic['school_name'] . '</strong>';
 								echo $basic['school_address'] . '<br/>';
 								echo $basic['school_mobileno'] . '<br/>';
 								echo $basic['school_email'] . '<br/>';
@@ -74,10 +72,31 @@ $basic           = $this->fees_model->getInvoiceBasic($studentID);
 						$total_paid     = 0;
 						$total_balance  = 0;
 						$total_amount   = 0;
-						$this->db->select('*');
-						$this->db->where_in('id', array_column($record_array, 'payment_id'));
-						$this->db->from('fee_payment_history');
-						$paymentHistory = $this->db->get()->result();
+						$payment_ids = array_filter(array_column($record_array, 'payment_id'));
+						if (!empty($payment_ids)) {
+							$this->db->select('*');
+							$this->db->where_in('id', $payment_ids);
+							$this->db->from('fee_payment_history');
+							$paymentHistory = $this->db->get()->result();
+						} else {
+							$paymentHistory = array();
+							foreach ($record_array as $rec) {
+								$this->db->select('*');
+								$this->db->from('fee_payment_history');
+								if (isset($rec->feeType) && $rec->feeType == 'transport' && !empty($rec->trans_fd_id)) {
+									$this->db->where('transport_fee_details_id', $rec->trans_fd_id);
+								} elseif (!empty($rec->allocationID) && !empty($rec->feeTypeID)) {
+									$this->db->where('allocation_id', $rec->allocationID);
+									$this->db->where('type_id', $rec->feeTypeID);
+								} else {
+									continue;
+								}
+								$res = $this->db->get()->result();
+								if (!empty($res)) {
+									$paymentHistory = array_merge($paymentHistory, $res);
+								}
+							}
+						}
 						foreach ($paymentHistory as $key => $row) {
 							$paid            = $row->amount;
 							$discount        = $row->discount;
@@ -122,7 +141,7 @@ $basic           = $this->fees_model->getInvoiceBasic($studentID);
 					</div>
 				</div>
 			</div>
-			<div class="text-center mt-md">Generated at <?php echo _d(date('Y-m-d')) . ', ' . date('h:i A'); ?></div>
+			<div class="text-center mt-md">Generated at <?php echo _d(date('Y-m-d')) . ', ' . date('h:i A'); ?> | Powered by KKWEBMART</div>
 		</div>
 	</div>
 <?php } ?>

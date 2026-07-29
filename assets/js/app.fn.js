@@ -27,9 +27,37 @@
                     } else if (data.status == "access_denied") {
                         window.location.href = base_url + "dashboard";
                     } else {
-                        if (data.url) {
+                        if (data.payment_id) {
+                            $.ajax({
+                                url: base_url + "fees/payReceiptPrint",
+                                type: 'POST',
+                                data: {
+                                    'student_id': data.student_id ? data.student_id : (typeof studentID !== 'undefined' ? studentID : 0),
+                                    'data': typeof data.payment_id === 'string' ? data.payment_id : JSON.stringify(data.payment_id)
+                                },
+                                dataType: "html",
+                                cache: false,
+                                success: function (response) {
+                                    fn_printElem(response, true);
+                                    setTimeout(function() {
+                                        if (data.url) {
+                                            window.location.href = data.url;
+                                        } else {
+                                            location.reload(true);
+                                        }
+                                    }, 1000);
+                                },
+                                error: function () {
+                                    if (data.url) {
+                                        window.location.href = data.url;
+                                    } else {
+                                        location.reload(true);
+                                    }
+                                }
+                            });
+                        } else if (data.url) {
                             window.location.href = data.url;
-                        } else{
+                        } else {
                             location.reload(true);
                         }
                     }

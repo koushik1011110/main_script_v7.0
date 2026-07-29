@@ -813,7 +813,11 @@ class Fees extends Admin_Controller
                 $this->sms_model->send_sms($arrayData, 2);
             }
             set_alert('success', translate('information_has_been_saved_successfully'));
-            $array = array('status' => 'success');
+            $array = array(
+                'status' => 'success',
+                'student_id' => $this->input->post('student_id'),
+                'payment_id' => json_encode(array(array('payment_id' => $payment_historyID)))
+            );
         } else {
             $error = $this->form_validation->error_array();
             $array = array('status' => 'fail', 'url' => '', 'error' => $error);
@@ -1188,6 +1192,7 @@ class Fees extends Admin_Controller
             if (empty($basic))
                 ajax_access_denied();
 
+            $payment_history_ids = array();
             $allocations = $this->fees_model->getInvoiceDetails($invoiceID);
             $totalBalance = 0;
             $totalFine = 0;
@@ -1211,6 +1216,7 @@ class Fees extends Admin_Controller
                         'date' => $date,
                     );
                     $this->db->insert('fee_payment_history', $arrayFees);
+                    $payment_history_ids[] = array('payment_id' => $this->db->insert_id());
                 }
             }
 
@@ -1238,6 +1244,7 @@ class Fees extends Admin_Controller
                             'date' => $date,
                         );
                         $this->db->insert('fee_payment_history', $arrayFees);
+                        $payment_history_ids[] = array('payment_id' => $this->db->insert_id());
                     }
                 }
             }
@@ -1262,7 +1269,11 @@ class Fees extends Admin_Controller
                 $this->sms_model->send_sms($arrayData, 2);
             }
             set_alert('success', translate('information_has_been_saved_successfully'));
-            $array = array('status' => 'success');
+            $array = array(
+                'status' => 'success',
+                'student_id' => $this->input->post('student_id'),
+                'payment_id' => json_encode($payment_history_ids)
+            );
         } else {
             $error = $this->form_validation->error_array();
             $array = array('status' => 'fail', 'url' => '', 'error' => $error);
@@ -1389,6 +1400,7 @@ class Fees extends Admin_Controller
 
         if ($this->form_validation->run() !== false) {
             $studentID = $this->input->post('student_id');
+            $payment_history_ids = array();
             foreach ($items as $key => $value) {
                 $amount = $value['amount'];
                 $fineAmount = $value['fine_amount'];
@@ -1413,6 +1425,7 @@ class Fees extends Admin_Controller
                     $arrayFees['transport_fee_details_id'] = $value['trans_fd_id'];
                 }
                 $this->db->insert('fee_payment_history', $arrayFees);
+                $payment_history_ids[] = array('payment_id' => $this->db->insert_id());
 
                 // transaction voucher save function
                 if (isset($value['account_id'])) {
@@ -1432,7 +1445,11 @@ class Fees extends Admin_Controller
                 $this->sms_model->send_sms($arrayData, 2);
             }
             set_alert('success', translate('information_has_been_saved_successfully'));
-            $array = array('status' => 'success');
+            $array = array(
+                'status' => 'success',
+                'student_id' => $studentID,
+                'payment_id' => json_encode($payment_history_ids)
+            );
         } else {
             $error = $this->form_validation->error_array();
             $array = array('status' => 'fail', 'error' => $error);
