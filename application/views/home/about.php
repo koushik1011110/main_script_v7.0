@@ -23,15 +23,25 @@
 <!-- Main Container Starts -->
 <div class="container px-md-0">
     <!-- About Intro Text Starts -->
-    <section class="welcome-area about"
-        style="background: url(<?php echo base_url('uploads/frontend/about/' . $page_data['about_image']); ?>) no-repeat right bottom;">
-        <div class="row">
-            <div class="col-lg-6 col-sm-12 about-col">
+    <section class="welcome-area about py-4">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6 col-md-12 about-col">
                 <h3 class="main-heading1"><?php echo $page_data['title']; ?></h3>
                 <h3 class="main-heading2"><?php echo $page_data['subtitle']; ?></h3>
-                <?php echo $page_data['content']; ?>
+                <div class="about-text-content">
+                    <?php echo $page_data['content']; ?>
+                </div>
             </div>
-            <div class="col-md-6 col-sm-12 d-none d-md-block"></div>
+            <?php if (!empty($page_data['about_image'])): ?>
+                <div class="col-lg-6 col-md-12 text-center my-3 my-lg-0">
+                    <div class="about-image-wrapper p-2 bg-white rounded-4 shadow-sm border">
+                        <img src="<?php echo base_url('uploads/frontend/about/' . $page_data['about_image']); ?>" 
+                             alt="About Us" 
+                             class="img-fluid rounded-3" 
+                             style="max-height: 450px; width: 100%; object-fit: cover; object-position: center;">
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
     </section>
     <!-- About Intro Text Ends -->

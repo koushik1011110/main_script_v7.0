@@ -26,7 +26,12 @@ class Home extends Frontend_Controller
 
     public function index()
     {
-        redirect(base_url('school-saas/index.html'));
+        $school = $this->uri->segment(1);
+        if (!empty($school)) {
+            $this->home();
+        } else {
+            redirect(base_url('school-saas/index.html'));
+        }
     }
 
 
@@ -44,8 +49,8 @@ class Home extends Frontend_Controller
         $this->data['cta_box'] = $this->home_model->getCmsHome('cta', $branchID);
         $this->data['statistics'] = $this->home_model->getCmsHome('statistics', $branchID);
         $this->data['page_data'] = $this->home_model->get('front_cms_home_seo', array('branch_id' => $branchID), true);
-        $this->data['main_contents'] = $this->load->view('home/index', $this->data, true);
-        $this->load->view('home/layout/index', $this->data);
+        $this->data['main_contents'] = $this->load_school_static_view('index', $this->data, true);
+        $this->load_school_static_layout($this->data);
     }
 
     public function about()
@@ -53,8 +58,8 @@ class Home extends Frontend_Controller
         $branchID = $this->home_model->getDefaultBranch();
         $this->data['branchID'] = $branchID;
         $this->data['page_data'] = $this->home_model->get('front_cms_about', array('branch_id' => $branchID), true);
-        $this->data['main_contents'] = $this->load->view('home/about', $this->data, true);
-        $this->load->view('home/layout/index', $this->data);
+        $this->data['main_contents'] = $this->load_school_static_view('about', $this->data, true);
+        $this->load_school_static_layout($this->data);
     }
 
     public function faq()

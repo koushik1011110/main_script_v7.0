@@ -52,6 +52,20 @@
 					</div>
 
 					<div class="form-group">
+						<label class="col-md-3 control-label"><?php echo translate('website') . " " . translate('template'); ?></label>
+						<div class="col-md-6">
+							<?php
+								$arrayTheme = array(
+									'theme1' => 'Theme 1 (Default)',
+									'theme2' => 'Theme 2 (Modern)',
+								);
+								$selectedTheme = isset($setting['theme']) && !empty($setting['theme']) ? $setting['theme'] : 'theme1';
+								echo form_dropdown("theme", $arrayTheme, $selectedTheme, "class='form-control' data-plugin-selectTwo data-width='100%' data-minimum-results-for-search='Infinity'");
+							?>
+						</div>
+					</div>
+
+					<div class="form-group">
 						<label  class="col-md-3 control-label"><?php echo translate('cms_frontend'); ?> <span class="required">*</span></label>
 						<div class="col-md-6">
 							<div class="radio-custom radio-success radio-inline mb-xs">

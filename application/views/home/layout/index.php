@@ -86,6 +86,17 @@
 		<div class="loader-container">
 			<div class="lds-dual-ring"></div>
 		</div>
+		<script type="text/javascript">
+			$(document).ready(function() {
+				$(".loader-container").fadeOut(200);
+			});
+			$(window).on("load", function() {
+				$(".loader-container").fadeOut(200);
+			});
+			setTimeout(function() {
+				$(".loader-container").hide();
+			}, 400);
+		</script>
 		<?php $this->load->view('home/layout/header'); ?>
 		<?php echo $main_contents; ?>
 		<?php $this->load->view('home/layout/footer'); ?>

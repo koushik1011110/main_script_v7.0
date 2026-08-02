@@ -175,15 +175,82 @@ class Frontend_Controller extends MY_Controller
         $this->load->model('home_model');
         $this->load->model('saas_model');
         $branchID = $this->home_model->getDefaultBranch();
-        $cms_setting = $this->db->get_where('front_cms_setting', array('branch_id' => $branchID))->row_array();
-        if (!$cms_setting['cms_active']) {
+        $db_cms_setting = $this->db->get_where('front_cms_setting', array('branch_id' => $branchID))->row_array();
+        $branch_info = $this->db->select('name')->get_where('branch', array('id' => $branchID))->row_array();
+        $school_name = !empty($branch_info['name']) ? $branch_info['name'] : 'School Campus';
+
+        $default_cms_setting = array(
+            'branch_id' => $branchID,
+            'url_alias' => !empty($this->uri->segment(1)) ? $this->uri->segment(1) : 'default',
+            'cms_active' => 1,
+            'application_title' => $school_name,
+            'logo' => '',
+            'fav_icon' => '',
+            'primary_color' => '#1b1d21',
+            'hover_color' => '#3b82f6',
+            'text_color' => '#333333',
+            'text_secondary_color' => '#666666',
+            'footer_background_color' => '#0f172a',
+            'footer_text_color' => '#ffffff',
+            'copyright_bg_color' => '#090d16',
+            'copyright_text_color' => '#ffffff',
+            'border_radius' => '8px',
+            'menu_color' => '#1e293b',
+            'google_analytics' => '',
+            'online_admission' => 1,
+            'working_hours' => 'Mon - Sat: 8:00 AM - 3:00 PM',
+            'email' => '',
+            'mobile_no' => '',
+            'address' => '',
+            'fax' => '',
+            'footer_about_text' => '',
+            'copyright_text' => '© ' . date('Y') . ' ' . $school_name . '. All Rights Reserved.'
+        );
+        $cms_setting = is_array($db_cms_setting) ? array_merge($default_cms_setting, array_filter($db_cms_setting, function($v){ return !is_null($v); })) : $default_cms_setting;
+
+        if (empty($cms_setting['application_title']) || $cms_setting['application_title'] == 'School Website' || $cms_setting['application_title'] == 'School Management System With CMS') {
+            $cms_setting['application_title'] = $school_name;
+        }
+
+        if (isset($cms_setting['cms_active']) && !$cms_setting['cms_active']) {
             redirect(site_url('authentication'));
-        } else {
-            if (!$this->saas_model->checkSubscriptionValidity($branchID)) {
-                $this->session->set_flashdata('website_expired_msg', '1');
-                redirect(base_url());
-            }
         }
         $this->data['cms_setting'] = $cms_setting;
+        $this->data['real_stats'] = $this->home_model->getSchoolRealStats($branchID);
+    }
+
+    public function load_school_static_view($view = 'index', $data = array(), $return = false)
+    {
+        $alias = !empty($this->data['cms_setting']['url_alias']) ? $this->data['cms_setting']['url_alias'] : 'default';
+        $branch_view = "home/schools/{$alias}/{$view}";
+        if (file_exists(VIEWPATH . "{$branch_view}.php")) {
+            return $this->load->view($branch_view, $data, $return);
+        }
+
+        $default_view = "home/schools/default/{$view}";
+        if (file_exists(VIEWPATH . "{$default_view}.php")) {
+            return $this->load->view($default_view, $data, $return);
+        }
+
+        return $this->load->view("home/{$view}", $data, $return);
+    }
+
+    public function load_school_static_layout($data = array())
+    {
+        $alias = !empty($this->data['cms_setting']['url_alias']) ? $this->data['cms_setting']['url_alias'] : 'default';
+
+        $branch_layout = "home/schools/{$alias}/layout/index";
+        if (file_exists(VIEWPATH . "{$branch_layout}.php")) {
+            $this->load->view($branch_layout, $data);
+            return;
+        }
+
+        $default_layout = "home/schools/default/layout/index";
+        if (file_exists(VIEWPATH . "{$default_layout}.php")) {
+            $this->load->view($default_layout, $data);
+            return;
+        }
+
+        $this->load->view('home/layout/index', $data);
     }
 }

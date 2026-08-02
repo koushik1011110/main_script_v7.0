@@ -86,6 +86,7 @@ class Setting extends Admin_Controller
                     'copyright_bg_color' => $this->input->post('copyright_bg_color'),
                     'copyright_text_color' => $this->input->post('copyright_text_color'),
                     'border_radius' => $this->input->post('border_radius'),
+                    'theme' => $this->input->post('theme'),
 
                     'online_admission' => $this->input->post('online_admission'),
                     'captcha_status' => $this->input->post('captcha_status'),
