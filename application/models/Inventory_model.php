@@ -10,17 +10,18 @@ class Inventory_model extends MY_Model
 
     public function save_product($data)
     {
+        $branch_id = !empty($data['branch_id']) ? $data['branch_id'] : $this->application_model->get_branch_id();
         $insert_product = array(
             'name' => $data['product_name'],
-            'code' => $data['product_code'],
+            'code' => empty($data['product_code']) ? '' : trim($data['product_code']),
             'category_id' => $data['product_category'],
-            'purchase_unit_id' => $data['purchase_unit'],
-            'sales_unit_id' => $data['sales_unit'],
-            'unit_ratio' => $data['unit_ratio'],
+            'purchase_unit_id' => empty($data['purchase_unit']) ? 0 : intval($data['purchase_unit']),
+            'sales_unit_id' => empty($data['sales_unit']) ? 0 : intval($data['sales_unit']),
+            'unit_ratio' => empty($data['unit_ratio']) ? 1 : $data['unit_ratio'],
             'purchase_price' => $data['purchase_price'],
             'sales_price' => $data['sales_price'],
-            'remarks' => $data['remarks'],
-            'branch_id' => $this->application_model->get_branch_id(),
+            'remarks' => empty($data['remarks']) ? '' : $data['remarks'],
+            'branch_id' => $branch_id,
         );
         if (isset($data['product_id']) && !empty($data['product_id'])) {
             $this->db->where('id', $data['product_id']);
@@ -269,11 +270,15 @@ class Inventory_model extends MY_Model
     public function getProductByBranch($branch_id = '')
     {
         if (!empty($branch_id)) {
-            $this->db->where('branch_id', $branch_id);
-            $result = $this->db->get('product')->result_array();
-            return $result;
+            $this->db->select('product.*,product_category.name as category_name,product_unit.name as unit_name');
+            $this->db->from('product');
+            $this->db->join('product_category', 'product_category.id = product.category_id', 'left');
+            $this->db->join('product_unit', 'product_unit.id = product.sales_unit_id', 'left');
+            $this->db->where('product.branch_id', $branch_id);
+            $this->db->order_by('product.name', 'asc');
+            return $this->db->get()->result_array();
         }
-        return "";
+        return array();
     }
 
     public function save_sales($data)
@@ -290,10 +295,39 @@ class Inventory_model extends MY_Model
             }
         }
 
+        $role_id = isset($data['role_id']) ? intval($data['role_id']) : 0;
+        $user_id = isset($data['sale_to']) ? $data['sale_to'] : 0;
+        $customer_name = !empty($data['customer_name']) ? trim($data['customer_name']) : '';
+        $customer_phone = !empty($data['customer_phone']) ? trim($data['customer_phone']) : '';
+
+        if (is_string($user_id) && substr($user_id, 0, 7) === 'custom_') {
+            $customer_name = substr($user_id, 7);
+            $user_id = 0;
+            $role_id = 0;
+        }
+
+        if (empty($user_id) && empty($customer_name)) {
+            $customer_name = 'Walk-in Customer';
+        }
+
+        if (!empty($user_id) && !empty($role_id)) {
+            $u = $this->application_model->getUserNameByRoleID($role_id, $user_id);
+            if (!empty($u['name'])) {
+                $customer_name = $u['name'];
+            }
+            if (empty($customer_phone) && !empty($u['mobileno'])) {
+                $customer_phone = $u['mobileno'];
+            }
+        }
+
+        $branch_id = !empty($data['branch_id']) ? $data['branch_id'] : $this->application_model->get_branch_id();
+
         $arrayInvoice = array(
             'bill_no' => $data['bill_no'],
-            'role_id' => $data['role_id'],
-            'user_id' => $data['sale_to'],
+            'role_id' => $role_id,
+            'user_id' => intval($user_id),
+            'customer_name' => $customer_name,
+            'customer_phone' => $customer_phone,
             'remarks' => $data['payment_remarks'],
             'total' => $data['grand_total'],
             'discount' => $data['total_discount'],
@@ -303,7 +337,7 @@ class Inventory_model extends MY_Model
             'date' => date('Y-m-d', strtotime($data['date'])),
             'prepared_by' => get_loggedin_user_id(),
             'modifier_id' => get_loggedin_user_id(),
-            'branch_id' => $this->application_model->get_branch_id(),
+            'branch_id' => $branch_id,
         );
         $this->db->insert('sales_bill', $arrayInvoice);
         $sales_bill_id = $this->db->insert_id();
@@ -340,6 +374,7 @@ class Inventory_model extends MY_Model
             );
             $this->db->insert('sales_payment_history', $arrayInvoice);
         }
+        return $sales_bill_id;
     }
 
     public function save_issue($data)

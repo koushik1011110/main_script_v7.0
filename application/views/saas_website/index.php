@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="<?php echo base_url('assets/frontend/css/glightbox.min.css'); ?>" />
     <link rel="stylesheet" href="<?php echo base_url('assets/vendor/select2/css/select2.min.css'); ?>">
     <link rel="stylesheet" href="<?php echo base_url('assets/vendor/sweetalert/sweetalert-custom.css'); ?>">
-    <link rel="stylesheet" href="<?php echo base_url('assets/frontend/css/saas_main.css'); ?>" />
+    <link rel="stylesheet" href="<?php echo base_url('assets/frontend/css/saas_main.css?v=7.0.1'); ?>" />
 
     <!-- Google Analytics -->
     <?php echo $getSettings->google_analytics; ?>

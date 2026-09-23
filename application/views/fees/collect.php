@@ -26,6 +26,11 @@ if ($extINTL == true) {
 				<a href="#fully_paid" data-toggle="tab"><i class="far fa-credit-card"></i> Fully Paid</a>
 			</li>
 <?php endif; ?>
+<?php if (get_permission('collect_fees', 'is_add')): ?>
+			<li>
+				<a href="#carry_fees" data-toggle="tab"><i class="fas fa-forward"></i> Carry Fees</a>
+			</li>
+<?php endif; ?>
 		</ul>
 		<div class="tab-content">
 			<div id="invoice" class="tab-pane <?=empty($this->session->flashdata('pay_tab')) ? 'active' : ''; ?>">
@@ -100,9 +105,22 @@ if ($extINTL == true) {
 						<button type="button" class="btn btn-default btn-sm mb-sm hidden-print mr-xs" id="collectFees" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">
 							<i class="fas fa-coins fa-fw"></i> Selected Fees Collect
 						</button>
-						<button type="button" class="btn btn-default btn-sm mb-sm hidden-print payReceiptPrintInv" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">
-							<i class="fas fa-print"></i> Selected Pay Receipt
+						<button type="button" class="btn btn-default btn-sm mb-sm hidden-print mr-xs" id="collectFeesSave" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">
+							<i class="fas fa-save fa-fw"></i> Save/Paid
 						</button>
+						<div class="btn-group mb-sm hidden-print mr-xs">
+							<button type="button" class="btn btn-default btn-sm payReceiptPrintInv" data-copy-type="both" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">
+								<i class="fas fa-print"></i> Selected Pay Receipt
+							</button>
+							<button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								<span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu">
+								<li><a href="javascript:void(0);" class="btnReceiptPrintOption" data-target="inv" data-copy-type="both"><i class="fas fa-columns"></i> Both Copies (Student & Office)</a></li>
+								<li><a href="javascript:void(0);" class="btnReceiptPrintOption" data-target="inv" data-copy-type="student"><i class="fas fa-user-graduate"></i> Student Copy Only</a></li>
+								<li><a href="javascript:void(0);" class="btnReceiptPrintOption" data-target="inv" data-copy-type="office"><i class="fas fa-building"></i> Office Copy Only</a></li>
+							</ul>
+						</div>
 					<?php } ?>
 						<div class="table-responsive br-none">
 							<table class="table invoice-items table-hover mb-none" id="invoiceSummary">
@@ -162,13 +180,18 @@ if ($extINTL == true) {
 											$group[] = $row['group_id'];
 											?>
 										<tr>
-											<td class="group" colspan="10"><strong><?php echo get_type_name_by_id('fee_groups', $row['group_id']) ?></strong><img class="group" src="<?php echo base_url('assets/images/arrow.png') ?>"></td>
+											<td class="group" colspan="10">
+												<div class="checkbox-replace hidden-print" style="display: inline-block; vertical-align: middle; margin-right: 5px;">
+													<label class="i-checks"><input type="checkbox" class="group-selectAll" data-group-id="<?php echo $row['group_id']; ?>"><i></i></label>
+												</div>
+												<strong><?php echo get_type_name_by_id('fee_groups', $row['group_id']) ?></strong><img class="group" src="<?php echo base_url('assets/images/arrow.png') ?>">
+											</td>
 										</tr>
 									<?php } ?>
 									<tr>
 										<td class="hidden-print checked-area">
 											<div class="checkbox-replace">
-												<label class="i-checks"><input type="checkbox" name="cb_invoice" value="<?php echo $row['amount']; ?>" data-allocation-id="<?php echo $row['allocation_id'] ?>" data-fee-type-id="<?php echo $row['fee_type_id'] ?>" data-fee-type="general" data-transport-fd-id="0"><i></i></label>
+												<label class="i-checks"><input type="checkbox" name="cb_invoice" value="<?php echo $row['amount']; ?>" data-allocation-id="<?php echo $row['allocation_id'] ?>" data-fee-type-id="<?php echo $row['fee_type_id'] ?>" data-fee-type="general" data-transport-fd-id="0" data-group-id="<?php echo $row['group_id']; ?>"><i></i></label>
 											</div>
 										</td>
 										<td class="hidden-print"><?php echo $count++;?></td>
@@ -177,12 +200,12 @@ if ($extINTL == true) {
 										<td><?php 
 											$status = 0;
 											$labelmode = '';
-											if($type_amount == 0) {
-												$status = translate('unpaid');
-												$labelmode = 'label-danger-custom';
-											} elseif($balance == 0) {
+											if($balance == 0) {
 												$status = translate('total_paid');
 												$labelmode = 'label-success-custom';
+											} elseif($type_amount == 0 && $type_discount == 0) {
+												$status = translate('unpaid');
+												$labelmode = 'label-danger-custom';
 											} else {
 												$status = translate('partly_paid');
 												$labelmode = 'label-info-custom';
@@ -199,7 +222,12 @@ if ($extINTL == true) {
 	if (!empty($transport_fees)) {
 		?>
 										<tr>
-											<td class="group" colspan="10"><strong> <?php echo translate('transport_fees') ?></strong><img class="group" src="<?php echo base_url('assets/images/arrow.png') ?>"></td>
+											<td class="group" colspan="10">
+												<div class="checkbox-replace hidden-print" style="display: inline-block; vertical-align: middle; margin-right: 5px;">
+													<label class="i-checks"><input type="checkbox" class="group-selectAll" data-group-id="transport"><i></i></label>
+												</div>
+												<strong> <?php echo translate('transport_fees') ?></strong><img class="group" src="<?php echo base_url('assets/images/arrow.png') ?>">
+											</td>
 										</tr>
 <?php
 	foreach ($transport_fees as $key => $value) {
@@ -225,7 +253,7 @@ if ($extINTL == true) {
 										<tr>
 											<td class="hidden-print checked-area">
 												<div class="checkbox-replace">
-													<label class="i-checks"><input type="checkbox" name="cb_invoice" value="<?php echo $value->route_fare; ?>" data-allocation-id="0" data-fee-type-id="0" data-fee-type="transport" data-transport-fd-id="<?php echo $value->id; ?>"><i></i></label>
+													<label class="i-checks"><input type="checkbox" name="cb_invoice" value="<?php echo $value->route_fare; ?>" data-allocation-id="0" data-fee-type-id="0" data-fee-type="transport" data-transport-fd-id="<?php echo $value->id; ?>" data-group-id="transport"><i></i></label>
 												</div>
 											</td>
 											<td class="hidden-print"><?php echo $count++;?></td>
@@ -234,12 +262,12 @@ if ($extINTL == true) {
 											<td><?php 
 												$status = 0;
 												$labelmode = '';
-												if($type_amount == 0) {
-													$status = translate('unpaid');
-													$labelmode = 'label-danger-custom';
-												} elseif($balance == 0) {
+												if($balance == 0) {
 													$status = translate('total_paid');
 													$labelmode = 'label-success-custom';
+												} elseif($type_amount == 0 && $type_discount == 0) {
+													$status = translate('unpaid');
+													$labelmode = 'label-danger-custom';
 												} else {
 													$status = translate('partly_paid');
 													$labelmode = 'label-info-custom';
@@ -297,7 +325,19 @@ if ($extINTL == true) {
 						<div class="invoice-summary text-right mt-lg visible-print-block" id="invDetailsPrint"></div>
 					</div>
 					<div class="text-right mr-lg hidden-print">
-						<button type="button" class="btn btn-default mr-xs payReceiptPrintInv" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing"><i class="fas fa-print"></i> Selected Pay Receipt</button>
+						<div class="btn-group mr-xs hidden-print">
+							<button type="button" class="btn btn-default payReceiptPrintInv" data-copy-type="both" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">
+								<i class="fas fa-print"></i> Selected Pay Receipt
+							</button>
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								<span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu text-left">
+								<li><a href="javascript:void(0);" class="btnReceiptPrintOption" data-target="inv" data-copy-type="both"><i class="fas fa-columns"></i> Both Copies (Student & Office)</a></li>
+								<li><a href="javascript:void(0);" class="btnReceiptPrintOption" data-target="inv" data-copy-type="student"><i class="fas fa-user-graduate"></i> Student Copy Only</a></li>
+								<li><a href="javascript:void(0);" class="btnReceiptPrintOption" data-target="inv" data-copy-type="office"><i class="fas fa-building"></i> Office Copy Only</a></li>
+							</ul>
+						</div>
 						<button id="invoicePrint" class="btn btn-default ml-sm" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing"><i class="fas fa-print"></i> <?=translate('print')?></button>
 					</div>
 				</div>
@@ -503,8 +543,19 @@ if (moduleIsEnabled('transport')) {
 						</div>
 						<div class="invoice-summary text-right mt-lg visible-print-block" id="invPaymentHistory"></div>
 					</div>
-					<div class="text-right mr-lg hidden-print">
-						<button id="payReceiptPrint" class="btn btn-default mr-xs" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing"><i class="fas fa-print"></i> Selected Pay Receipt</button>
+						<div class="btn-group mr-xs hidden-print">
+							<button id="payReceiptPrint" class="btn btn-default" data-copy-type="both" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">
+								<i class="fas fa-print"></i> Selected Pay Receipt
+							</button>
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								<span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu text-left">
+								<li><a href="javascript:void(0);" class="btnReceiptPrintOption" data-target="history" data-copy-type="both"><i class="fas fa-columns"></i> Both Copies (Student & Office)</a></li>
+								<li><a href="javascript:void(0);" class="btnReceiptPrintOption" data-target="history" data-copy-type="student"><i class="fas fa-user-graduate"></i> Student Copy Only</a></li>
+								<li><a href="javascript:void(0);" class="btnReceiptPrintOption" data-target="history" data-copy-type="office"><i class="fas fa-building"></i> Office Copy Only</a></li>
+							</ul>
+						</div>
 						<button id="paymentPrint" class="btn btn-default" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing"><i class="fas fa-print"></i> <?=translate('print')?></button>
 					</div>
 				</div>
@@ -679,6 +730,105 @@ if (moduleIsEnabled('transport')) {
 					<?php echo form_close();?>
 				</div>
 			<?php endif; ?>
+			<!-- Carry Fees Tab Pane -->
+			<?php if (get_permission('collect_fees', 'is_add')): ?>
+				<div id="carry_fees" class="tab-pane">
+					<div class="row">
+						<div class="col-md-8 col-md-offset-2">
+							<?php if (!empty($carry_allocation)): ?>
+								<div class="alert alert-info">
+									<strong><i class="fas fa-info-circle"></i> Current Carry Fees Status:</strong><br>
+									<span>Total Allocated: <strong><?=currencyFormat($carry_allocation['prev_due'])?></strong></span> | 
+									<span>Paid: <strong><?=currencyFormat($carry_allocation['paid'])?></strong></span> | 
+									<span>Remaining Balance: <strong><?=currencyFormat($carry_allocation['balance'])?></strong></span><br>
+									<small class="text-muted">Saving a new amount will update the allocated Carry Fees for this student.</small>
+								</div>
+							<?php endif; ?>
+
+							<div class="panel panel-default mb-md" style="border: 1px solid #e2e8f0; border-radius: 4px;">
+								<div class="panel-body">
+									<h4 class="text-dark mt-none mb-sm"><i class="fas fa-history text-primary"></i> Previous Session(s) Due Summary</h4>
+									<?php 
+									$prev_total = isset($previous_due_info['total_due']) ? $previous_due_info['total_due'] : 0;
+									?>
+									<p class="mb-sm">
+										<strong>Total Outstanding Dues from Previous Sessions:</strong> 
+										<span class="text-danger text-weight-bold" style="font-size: 16px;"><?=currencyFormat($prev_total)?></span>
+									</p>
+
+									<?php if (!empty($previous_due_info['sessions'])): ?>
+										<div class="table-responsive mt-sm mb-sm">
+											<table class="table table-bordered table-condensed text-dark">
+												<thead>
+													<tr class="bg-primary text-white">
+														<th>Session / School Year</th>
+														<th>Class</th>
+														<th>Section</th>
+														<th class="text-right">Due Balance</th>
+													</tr>
+												</thead>
+												<tbody>
+													<?php foreach ($previous_due_info['sessions'] as $sess_due): ?>
+														<tr>
+															<td><?=$sess_due['school_year']?></td>
+															<td><?=$sess_due['class_name']?></td>
+															<td><?=$sess_due['section_name']?></td>
+															<td class="text-right"><?=currencyFormat($sess_due['balance'])?></td>
+														</tr>
+													<?php endforeach; ?>
+												</tbody>
+											</table>
+										</div>
+									<?php else: ?>
+										<p class="text-muted mb-xs"><small><i class="fas fa-info-circle"></i> No past session enrollment records found in the database. You can manually enter the Carry Fees amount below.</small></p>
+									<?php endif; ?>
+
+									<?php if ($prev_total > 0): ?>
+										<button type="button" class="btn btn-default btn-xs" id="btnUsePrevDue" data-amount="<?=$prev_total?>">
+											<i class="fas fa-copy"></i> Use Calculated Due (<?=currencyFormat($prev_total)?>)
+										</button>
+									<?php endif; ?>
+								</div>
+							</div>
+
+							<?php echo form_open('fees/carry_fees_save', array('class' => 'form-horizontal frm-submit')); ?>
+								<input type="hidden" name="student_id" value="<?=$basic['enroll_id']?>">
+
+								<div class="form-group">
+									<label class="col-md-3 control-label"><?=translate('date')?> <span class="required">*</span></label>
+									<div class="col-md-8">
+										<input type="text" class="form-control" data-plugin-datepicker
+										data-plugin-options='{"todayHighlight" : true}' name="date" value="<?=empty($carry_allocation['due_date']) ? date('Y-m-d') : $carry_allocation['due_date']?>" autocomplete="off" />
+										<span class="error"></span>
+									</div>
+								</div>
+
+								<div class="form-group">
+									<label class="col-md-3 control-label"><?=translate('amount')?> <span class="required">*</span></label>
+									<div class="col-md-8">
+										<div class="input-group">
+											<span class="input-group-addon"><?=$currency_symbol?></span>
+											<input type="number" step="0.01" min="0.01" class="form-control" name="amount" id="carryFeeAmount" value="<?=!empty($carry_allocation['prev_due']) ? $carry_allocation['prev_due'] : ($prev_total > 0 ? $prev_total : '')?>" placeholder="Enter Carry Fees amount" autocomplete="off" />
+										</div>
+										<span class="error"></span>
+										<small class="text-muted">This amount will be added specifically as 'Carry Fees' for <strong><?=$basic['first_name'] . ' ' . $basic['last_name']?></strong> only.</small>
+									</div>
+								</div>
+
+								<footer class="panel-footer mt-lg">
+									<div class="row">
+										<div class="col-md-offset-3 col-md-8">
+											<button type="submit" class="btn btn-default" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">
+												<i class="fas fa-save"></i> Save Carry Fees
+											</button>
+										</div>
+									</div>
+								</footer>
+							<?php echo form_close(); ?>
+						</div>
+					</div>
+				</div>
+			<?php endif; ?>
 		</div>
 	</div>
 </section>
@@ -693,6 +843,7 @@ if (moduleIsEnabled('transport')) {
 			</h4>
 		</header>
 		<?php echo form_open('fees/selectedFeesPay', array('class' => 'frm-submit' )); ?>
+		<input type="hidden" name="print_now" id="print_now_input" value="0">
 		<div class="panel-body">
 			<div id="printResult" class="pt-sm pb-sm">
 				<div class="table-responsive">						
@@ -704,8 +855,21 @@ if (moduleIsEnabled('transport')) {
 		</div>
 		<footer class="panel-footer">
 			<div class="row">
-				<div class="col-md-12 text-right">
-					<button type="submit" class="btn btn-default" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">Fee Payment</button>
+				<div class="col-md-6 text-left" style="padding-top: 5px;">
+					<span style="font-size: 12px; font-weight: bold; color: #475569; margin-right: 8px;"><i class="fas fa-copy"></i> Receipt:</span>
+					<label class="radio-inline" style="font-size: 12px; font-weight: 600; cursor: pointer;">
+						<input type="radio" name="modal_receipt_copy" value="both" checked> Both Copies
+					</label>
+					<label class="radio-inline" style="font-size: 12px; font-weight: 600; cursor: pointer;">
+						<input type="radio" name="modal_receipt_copy" value="student"> Student Only
+					</label>
+					<label class="radio-inline" style="font-size: 12px; font-weight: 600; cursor: pointer;">
+						<input type="radio" name="modal_receipt_copy" value="office"> Office Only
+					</label>
+				</div>
+				<div class="col-md-6 text-right">
+					<button type="submit" id="btnSubmitSavePaid" class="btn btn-default mr-xs" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing"><i class="fas fa-save"></i> Save/Paid</button>
+					<button type="submit" id="btnSubmitSavePrint" class="btn btn-default" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing"><i class="fas fa-print"></i> Fee Payment</button>
 				</div>
 			</div>
 		</footer>
@@ -725,6 +889,35 @@ if (moduleIsEnabled('transport')) {
 		} else {
 			$chcks.prop('checked', false).trigger('change');
 		}
+	});
+
+	$(document).on("change", ".group-selectAll", function(ev)
+	{
+		var groupID = $(this).data("group-id");
+		var $chcks = $(this).closest("table").find("tbody input[name='cb_invoice'][data-group-id='" + groupID + "']");
+		if($(this).is(':checked'))
+		{
+			$chcks.prop('checked', true).trigger('change');
+		} else {
+			$chcks.prop('checked', false).trigger('change');
+		}
+	});
+
+	$(document).on("change", "input[name='cb_invoice']", function()
+	{
+		var groupID = $(this).data("group-id");
+		if (groupID) {
+			var $table = $(this).closest("table");
+			var $groupChcks = $table.find("tbody input[name='cb_invoice'][data-group-id='" + groupID + "']");
+			var $groupSelectAll = $table.find(".group-selectAll[data-group-id='" + groupID + "']");
+			var allGroupChecked = $groupChcks.length > 0 && $groupChcks.filter(':checked').length === $groupChcks.length;
+			$groupSelectAll.prop('checked', allGroupChecked);
+		}
+
+		var $allInvoiceChcks = $(this).closest("table").find("tbody input[name='cb_invoice']");
+		var $mainSelectAll = $(this).closest("table").find(".fee-selectAll");
+		var allMainChecked = $allInvoiceChcks.length > 0 && $allInvoiceChcks.filter(':checked').length === $allInvoiceChcks.length;
+		$mainSelectAll.prop('checked', allMainChecked);
 	});
 
 	$('#collectFees').on('click', function(e) {
@@ -761,6 +954,7 @@ if (moduleIsEnabled('transport')) {
                 cache: false,
                 success: function (response) {
                     $("#feeCollect").html(response);
+                    $("#dont_print_input").val(0);
                 },
                 complete: function () {
 					$(".selectTwo").each(function() {
@@ -779,6 +973,69 @@ if (moduleIsEnabled('transport')) {
                 }
             });
         }
+	});
+
+	$('#collectFeesSave').on('click', function(e) {
+		var $btn = $(this);
+		$btn.button('loading');
+		var arrayData = [];
+		$("#invoiceSummary tbody input[name='cb_invoice']:checked").each(function() {
+			var allocationID = $(this).data("allocation-id");
+			var feeTypeID = $(this).data("fee-type-id");
+			var feeAmount = $(this).val();
+			var trans_fd_id = $(this).data("transport-fd-id");
+			var feeType = $(this).data("fee-type");
+            array = {};
+            array ["feeAmount"] = feeAmount;
+            array ["allocationID"] = allocationID;
+            array ["feeTypeID"] = feeTypeID;
+            array ["trans_fd_id"] = trans_fd_id;
+            array ["feeType"] = feeType;
+            arrayData.push(array);
+		});
+        if (arrayData.length === 0) {
+            alert("No Rows Selected.");
+            $btn.button('reset');
+        } else {
+            $.ajax({
+                url: base_url + "fees/selectedFeesCollect",
+                type: 'POST',
+                data: {
+                	'data': JSON.stringify(arrayData),
+                	'branch_id': branchID,
+                	'student_id' : studentID,
+                },
+                dataType: "html",
+                cache: false,
+                success: function (response) {
+                    $("#feeCollect").html(response);
+                    $("#print_now_input").val(0);
+                },
+                complete: function () {
+					$(".selectTwo").each(function() {
+						var $this = $(this);
+						$this.themePluginSelect2({});
+					});
+					$(".datepicker").each(function() {
+						var $this = $(this);
+						$this.themePluginDatePicker({
+							"todayHighlight" : true,
+							"endDate" : "today"
+						});
+					});
+                	mfp_modal('#modal');
+                	$btn.button('reset');
+                }
+            });
+        }
+	});
+
+	$(document).on('click', '#btnSubmitSavePaid', function() {
+		$("#print_now_input").val(0);
+	});
+
+	$(document).on('click', '#btnSubmitSavePrint', function() {
+		$("#print_now_input").val(1);
 	});
 
 	$('#invoicePrint').on('click', function(e) {
@@ -863,88 +1120,77 @@ if (moduleIsEnabled('transport')) {
         }
 	});
 
-	$('#payReceiptPrint').on('click', function(e) {
-		var $btn = $(this);
-		$btn.button('loading');
+	function executePayReceiptPrint(source, copyType, $btn) {
+		if ($btn) $btn.button('loading');
 		var arrayData = [];
-		$("#paymentHistory tbody input[name='cb_feePay']").each(function() {
-			if($(this).is(':checked')) {
+		if (source === 'history') {
+			$("#paymentHistory tbody input[name='cb_feePay']:checked").each(function() {
 				var allocationID = $(this).data("allocation-id");
 				var feeTypeID = $(this).data("fee-type-id");
 				var paymentID = $(this).val();
-	            array = {};
-	            array ["payment_id"] = paymentID;
-	            array ["allocationID"] = allocationID;
-	            array ["feeTypeID"] = feeTypeID;
-	            arrayData.push(array);
-        	}
-		});
-        if (arrayData.length === 0) {
-            alert("No Rows Selected.");
-            $btn.button('reset');
-        } else {
-        	$("#invDetailsPrint").html("");
-            $.ajax({
-                url: base_url + "fees/payReceiptPrint",
-                type: 'POST',
-                data: {
-					'student_id' : studentID,
-					'data': JSON.stringify(arrayData)
-            	},
-                dataType: "html",
-                cache: false,
-                success: function (response) {
-                    fn_printElem(response, true);
-                },
-                complete: function () {
-                	$btn.button('reset');
-                }
-            });
-        }
-	});
-
-	$('.payReceiptPrintInv').on('click', function(e) {
-		var $btn = $(this);
-		$btn.button('loading');
-		var arrayData = [];
-		$("#invoiceSummary tbody input[name='cb_invoice']").each(function() {
-			if($(this).is(':checked')) {
+				var array = {};
+				array["payment_id"] = paymentID;
+				array["allocationID"] = allocationID;
+				array["feeTypeID"] = feeTypeID;
+				arrayData.push(array);
+			});
+		} else {
+			$("#invoiceSummary tbody input[name='cb_invoice']:checked").each(function() {
 				var allocationID = $(this).data("allocation-id");
 				var feeTypeID = $(this).data("fee-type-id");
 				var feeAmount = $(this).val();
 				var trans_fd_id = $(this).data("transport-fd-id");
 				var feeType = $(this).data("fee-type");
-	            array = {};
-	            array ["feeAmount"] = feeAmount;
-	            array ["allocationID"] = allocationID;
-	            array ["feeTypeID"] = feeTypeID;
-	            array ["trans_fd_id"] = trans_fd_id;
-	            array ["feeType"] = feeType;
-	            arrayData.push(array);
-        	}
+				var array = {};
+				array["feeAmount"] = feeAmount;
+				array["allocationID"] = allocationID;
+				array["feeTypeID"] = feeTypeID;
+				array["trans_fd_id"] = trans_fd_id;
+				array["feeType"] = feeType;
+				arrayData.push(array);
+			});
+		}
+
+		if (arrayData.length === 0) {
+			alert("No Rows Selected.");
+			if ($btn) $btn.button('reset');
+			return;
+		}
+
+		$("#invDetailsPrint").html("");
+		$.ajax({
+			url: base_url + "fees/payReceiptPrint",
+			type: 'POST',
+			data: {
+				'student_id' : studentID,
+				'data': JSON.stringify(arrayData),
+				'copy_type': copyType || 'both'
+			},
+			dataType: "html",
+			cache: false,
+			success: function (response) {
+				fn_printElem(response, true);
+			},
+			complete: function () {
+				if ($btn) $btn.button('reset');
+			}
 		});
-        if (arrayData.length === 0) {
-            alert("No Rows Selected.");
-            $btn.button('reset');
-        } else {
-        	$("#invDetailsPrint").html("");
-            $.ajax({
-                url: base_url + "fees/payReceiptPrint",
-                type: 'POST',
-                data: {
-					'student_id' : studentID,
-					'data': JSON.stringify(arrayData)
-            	},
-                dataType: "html",
-                cache: false,
-                success: function (response) {
-                    fn_printElem(response, true);
-                },
-                complete: function () {
-                	$btn.button('reset');
-                }
-            });
-        }
+	}
+
+	$('#payReceiptPrint').on('click', function(e) {
+		executePayReceiptPrint('history', $(this).data('copy-type') || 'both', $(this));
+	});
+
+	$('.payReceiptPrintInv').on('click', function(e) {
+		executePayReceiptPrint('inv', $(this).data('copy-type') || 'both', $(this));
+	});
+
+	$(document).on('click', '.btnReceiptPrintOption', function(e) {
+		e.preventDefault();
+		var target = $(this).data('target');
+		var copyType = $(this).data('copy-type') || 'both';
+		var $btn = target === 'history' ? $('#payReceiptPrint') : $(this).closest('.btn-group').find('.payReceiptPrintInv');
+		executePayReceiptPrint(target, copyType, $btn);
 	});
 
     $('#selected_revert').on('click', function(e){
@@ -1013,4 +1259,11 @@ if (moduleIsEnabled('transport')) {
 	        }
 	    });
     });
+
+	$('#btnUsePrevDue').on('click', function() {
+		var amt = $(this).data('amount');
+		if (amt > 0) {
+			$('#carryFeeAmount').val(amt);
+		}
+	});
 </script>

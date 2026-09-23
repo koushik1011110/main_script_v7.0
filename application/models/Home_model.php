@@ -125,7 +125,7 @@ class Home_model extends MY_Model
         $this->db->where('staff.branch_id', $branch_id);
         $this->db->order_by('staff.id', 'asc');
         if ($start != '') {
-            $this->db->limit(4, $start);
+            $this->db->limit(8, $start);
         }
         $result = $this->db->get()->result_array();
         return $result;

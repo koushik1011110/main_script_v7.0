@@ -103,15 +103,21 @@ class Application_model extends CI_Model
 
     public function getUserNameByRoleID($roleID, $userID = '')
     {
+        if (empty($roleID) || empty($userID)) {
+            return array('name' => 'Walk-in Customer', 'email' => '', 'mobileno' => '', 'photo' => 'defualt.png', 'branch_id' => '');
+        }
         if ($roleID == 6) {
             $sql = "SELECT `name`,`email`,`mobileno`,`photo`,`branch_id` FROM `parent` WHERE `id` = " . $this->db->escape($userID);
-            return $this->db->query($sql)->row_array();
+            $res = $this->db->query($sql)->row_array();
+            return !empty($res) ? $res : array('name' => 'Walk-in Customer', 'email' => '', 'mobileno' => '', 'photo' => 'defualt.png', 'branch_id' => '');
         } elseif ($roleID == 7) {
             $sql = "SELECT `student`.`id`, `mobileno`, CONCAT_WS(' ',`student`.`first_name`, `student`.`last_name`) as `name`, `student`.`email`, `student`.`photo`, `enroll`.`branch_id` FROM `student` INNER JOIN `enroll` ON `enroll`.`student_id` = `student`.`id` AND `enroll`.`session_id` = " . $this->db->escape(get_session_id()) . " WHERE `student`.`id` = " . $this->db->escape($userID);
-            return $this->db->query($sql)->row_array();
+            $res = $this->db->query($sql)->row_array();
+            return !empty($res) ? $res : array('name' => 'Walk-in Customer', 'email' => '', 'mobileno' => '', 'photo' => 'defualt.png', 'branch_id' => '');
         } else {
             $sql = "SELECT `name`,`mobileno`,`email`,`photo`,`branch_id` FROM `staff` WHERE `id` = " . $this->db->escape($userID);
-            return $this->db->query($sql)->row_array();
+            $res = $this->db->query($sql)->row_array();
+            return !empty($res) ? $res : array('name' => 'Walk-in Customer', 'email' => '', 'mobileno' => '', 'photo' => 'defualt.png', 'branch_id' => '');
         }
     }
 

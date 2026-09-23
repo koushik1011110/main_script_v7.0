@@ -170,54 +170,54 @@ html, body, .body, .inner-wrapper, .content-body, .dashboard-page {
 
 <div class="dashboard-page">
 
-<?php if (is_superadmin_loggedin() && empty($school_id)) { ?>
-<!-- SuperAdmin Multi-Branch Executive Overview Banner -->
+<?php if (is_superadmin_loggedin() || is_admin_loggedin() || get_permission('fees_summary_widget', 'is_view') || get_permission('invoice', 'is_view')) { ?>
+<!-- Executive Overview Banner (White Theme) -->
 <div class="row mb-md">
 	<div class="col-md-12">
-		<div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 16px; padding: 24px; color: #ffffff; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(15,23,42,0.15);">
-			<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px;">
+		<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; color: #0f172a; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);">
+			<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 14px;">
 				<div>
-					<h3 style="font-family:'Outfit',sans-serif; font-size:22px; font-weight:800; color:#ffffff; margin:0 0 4px 0;">
-						<i class="fas fa-layer-group text-primary me-2"></i> All Branches Executive Overview
+					<h3 style="font-family:'Outfit',sans-serif; font-size:22px; font-weight:800; color:#0f172a; margin:0 0 4px 0;">
+						<i class="fas fa-layer-group text-primary me-2"></i> <?php echo (is_superadmin_loggedin() && empty($school_id)) ? translate('all_branches_executive_overview') : translate('executive_overview'); ?>
 					</h3>
-					<p style="font-size:13px; color:#94a3b8; margin:0;">Real-time combined metrics across all school campuses</p>
+					<p style="font-size:13px; color:#64748b; margin:0;">Real-time collection & dues metrics</p>
 				</div>
-				<span style="background:rgba(37,99,235,0.2); border:1px solid rgba(37,99,235,0.4); color:#60a5fa; font-size:12px; font-weight:700; padding:6px 14px; border-radius:9999px; text-transform:uppercase;">
-					Super Admin Access
+				<span style="background:#eff6ff; border:1px solid #bfdbfe; color:#2563eb; font-size:12px; font-weight:700; padding:6px 14px; border-radius:9999px; text-transform:uppercase;">
+					<?php echo (is_superadmin_loggedin() && empty($school_id)) ? 'Super Admin Access' : 'Branch Overview'; ?>
 				</span>
 			</div>
 			
 			<div class="row">
-				<!-- Fees Collected -->
+				<!-- Today's Collection -->
 				<div class="col-md-4 col-sm-4 col-xs-12 mb-xs">
-					<div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:16px;">
-						<div style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Fees Collected</div>
-						<div style="font-family:'Outfit',sans-serif; font-size:22px; font-weight:800; color:#34d399;">
+					<div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:16px;">
+						<div style="font-size:11px; color:#0369a1; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Today's Total Collection</div>
+						<div style="font-family:'Outfit',sans-serif; font-size:22px; font-weight:800; color:#0284c7;">
+							<?php echo $global_config['currency_symbol'] . ' ' . number_format($superadmin_todays_fees, 2); ?>
+						</div>
+						<div style="font-size:11px; color:#0284c7; margin-top:4px;"><i class="fas fa-coins me-1"></i> Today Received</div>
+					</div>
+				</div>
+
+				<!-- Total Fees Collected -->
+				<div class="col-md-4 col-sm-4 col-xs-12 mb-xs">
+					<div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:16px;">
+						<div style="font-size:11px; color:#15803d; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Total Fees Collected</div>
+						<div style="font-family:'Outfit',sans-serif; font-size:22px; font-weight:800; color:#16a34a;">
 							<?php echo $global_config['currency_symbol'] . ' ' . number_format($superadmin_total_collected, 2); ?>
 						</div>
-						<div style="font-size:11px; color:#34d399; margin-top:4px;"><i class="fas fa-wallet me-1"></i> Total Collections</div>
+						<div style="font-size:11px; color:#16a34a; margin-top:4px;"><i class="fas fa-wallet me-1"></i> Total Collections</div>
 					</div>
 				</div>
 
 				<!-- Pending Fees -->
 				<div class="col-md-4 col-sm-4 col-xs-12 mb-xs">
-					<div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:16px;">
-						<div style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Pending Fees</div>
-						<div style="font-family:'Outfit',sans-serif; font-size:22px; font-weight:800; color:#fb7185;">
+					<div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:12px; padding:16px;">
+						<div style="font-size:11px; color:#be123c; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Pending Fees</div>
+						<div style="font-family:'Outfit',sans-serif; font-size:22px; font-weight:800; color:#e11d48;">
 							<?php echo $global_config['currency_symbol'] . ' ' . number_format($superadmin_pending_fees, 2); ?>
 						</div>
-						<div style="font-size:11px; color:#fb7185; margin-top:4px;"><i class="fas fa-clock me-1"></i> Outstanding Dues</div>
-					</div>
-				</div>
-
-				<!-- Today's Fees -->
-				<div class="col-md-4 col-sm-4 col-xs-12 mb-xs">
-					<div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:16px;">
-						<div style="font-size:11px; color:#94a3b8; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Today's Fees</div>
-						<div style="font-family:'Outfit',sans-serif; font-size:22px; font-weight:800; color:#38bdf8;">
-							<?php echo $global_config['currency_symbol'] . ' ' . number_format($superadmin_todays_fees, 2); ?>
-						</div>
-						<div style="font-size:11px; color:#38bdf8; margin-top:4px;"><i class="fas fa-coins me-1"></i> Today Received</div>
+						<div style="font-size:11px; color:#e11d48; margin-top:4px;"><i class="fas fa-clock me-1"></i> Outstanding Dues</div>
 					</div>
 				</div>
 			</div>

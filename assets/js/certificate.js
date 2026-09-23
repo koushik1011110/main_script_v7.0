@@ -131,8 +131,11 @@ function certificate_printElem(elem, html = false)
     }
     frameDoc.document.write('<link rel="stylesheet" href="' + base_url + 'assets/css/custom-style.css">');
     frameDoc.document.write('<link rel="stylesheet" href="' + base_url + 'assets/css/certificate.css">');
-    frameDoc.document.write('</head><body onload="window.print()">');
+    frameDoc.document.write('</head><body>');
     frameDoc.document.write(oContent);
+    frameDoc.document.write('<script>');
+    frameDoc.document.write('window.addEventListener("load", function() { setTimeout(function() { if (typeof autoFitAdmitCards === "function") { autoFitAdmitCards(); } window.print(); }, 120); });');
+    frameDoc.document.write('<\/script>');
     frameDoc.document.write('</body></html>');
     frameDoc.document.close();
     setTimeout(function () {

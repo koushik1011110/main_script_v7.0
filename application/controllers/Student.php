@@ -111,6 +111,11 @@ class Student extends Admin_Controller
         if (isset($validArr['student_mobile_no'])) {
             $this->form_validation->set_rules('mobileno', translate('mobile_no'), 'trim|required|numeric');
         }
+        if (isset($validArr['aadhar_card'])) {
+            $this->form_validation->set_rules('aadhar_card', translate('aadhar_card'), 'trim|required');
+        } else {
+            $this->form_validation->set_rules('aadhar_card', translate('aadhar_card'), 'trim');
+        }
         if (isset($validArr['previous_school_details'])) {
             $this->form_validation->set_rules('school_name', translate('school_name'), 'trim|required');
             $this->form_validation->set_rules('qualification', translate('qualification'), 'trim|required');
@@ -1012,6 +1017,7 @@ class Student extends Admin_Controller
         $data['religion'] = empty($row->religion) ? "N/A" : $row->religion;
         $data['email'] = $row->email;
         $data['mobileno'] = empty($row->mobileno) ? "N/A" : $row->mobileno;
+        $data['aadhar_card'] = empty($row->aadhar_card) ? "N/A" : $row->aadhar_card;
         $data['state'] = empty($row->state) ? "N/A" : $row->state;
         $data['address'] = empty($row->current_address) ? "N/A" : $row->current_address;
         echo json_encode($data);

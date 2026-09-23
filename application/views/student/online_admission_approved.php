@@ -57,8 +57,8 @@ $branchID = $stuDetails['branch_id'];
 							<label class="control-label"><?=translate('admission_date')?> <span class="required">*</span></label>
 							<div class="input-group">
 								<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>
-								<input type="text" class="form-control" name="admission_date" value="<?=set_value('admission_date', date('Y-m-d'))?>" data-plugin-datepicker
-								data-plugin-options='{ "todayHighlight" : true }' />
+								<input type="text" class="form-control" name="admission_date" value="<?=set_value('admission_date', date('d-m-Y'))?>" data-plugin-datepicker
+								data-plugin-options='{ "todayHighlight" : true, "format": "dd-mm-yyyy" }' />
 							</div>
 							<span class="error"><?=form_error('admission_date')?></span>
 						</div>
@@ -185,8 +185,8 @@ $branchID = $stuDetails['branch_id'];
 							<label class="control-label"><?=translate('birthday')?></label>
 							<div class="input-group">
 								<span class="input-group-addon"><i class="fas fa-birthday-cake"></i></span>
-								<input type="text" autocomplete="off" class="form-control" name="birthday" value="<?=set_value('birthday', $stuDetails['birthday'])?>" data-plugin-datepicker
-								data-plugin-options='{ "startView": 2 }' />
+								<input type="text" autocomplete="off" class="form-control" name="birthday" value="<?=set_value('birthday', (!empty($stuDetails['birthday']) ? date('d-m-Y', strtotime($stuDetails['birthday'])) : ''))?>" data-plugin-datepicker
+								data-plugin-options='{ "startView": 2, "format": "dd-mm-yyyy" }' />
 							</div>
 						</div>
 					</div>

@@ -158,5 +158,7 @@
         </div>
     </div>
     <?php } ?>
+	<!-- Gemini AI Assistant -->
+	<?php $this->load->view('layout/ai_assistant.php');?>
 </body>
 </html>

@@ -78,7 +78,7 @@
                             <div class="col-md-<?php echo $div ?>">
                                 <div class="form-group">
                                     <label for="admission_date">Admission Date<?php echo $admission_date['required'] == 1 ? ' <span class="required">*</span>' : ''; ?></label>
-                                    <input type="text" class="form-control" data-plugin-datepicker name="admission_date" readonly value="<?php echo date('Y-m-d') ?>" id="admission_date" autocomplete="off" />
+                                    <input type="text" class="form-control" data-plugin-datepicker data-plugin-options='{ "todayHighlight" : true, "format": "dd-mm-yyyy" }' name="admission_date" readonly value="<?php echo date('d-m-Y') ?>" id="admission_date" autocomplete="off" />
                                     <span class="error"></span>
                                 </div>
                             </div>
@@ -150,7 +150,7 @@
                             <div class="col-md-<?php echo $div ?>">
                                 <div class="form-group">
                                     <label for="birthday">Birthday<?php echo $birthday['required'] == 1 ? ' <span class="required">*</span>' : ''; ?></label>
-                                    <input type="text" class="form-control" data-plugin-datepicker name="birthday" readonly value="<?php echo set_value('birthday'); ?>" id="birthday" autocomplete="off" />
+                                    <input type="text" class="form-control" data-plugin-datepicker data-plugin-options='{ "startView": 2, "format": "dd-mm-yyyy" }' name="birthday" readonly value="<?php echo set_value('birthday'); ?>" id="birthday" autocomplete="off" />
                                     <span class="error"></span>
                                 </div>
                             </div>

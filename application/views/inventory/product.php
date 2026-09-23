@@ -91,9 +91,9 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label"><?php echo translate('product') . " " . translate('code'); ?> <span class="required">*</span></label>
+						<label class="col-md-3 control-label"><?php echo translate('product') . " " . translate('code'); ?></label>
 						<div class="col-md-6">
-							<input type="text" class="form-control" name="product_code" value="" autocomplete="off" />
+							<input type="text" class="form-control" name="product_code" value="" autocomplete="off" placeholder="<?=translate('optional')?>" />
 							<span class="error"></span>
 						</div>
 					</div>
@@ -109,7 +109,7 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label"><?php echo translate('purchase_unit'); ?> <span class="required">*</span></label>
+						<label class="col-md-3 control-label"><?php echo translate('purchase_unit'); ?></label>
 						<div class="col-md-6">
 							<?php
 								echo form_dropdown("purchase_unit", $unitlist, set_value("purchase_unit"), "class='form-control prounit' data-plugin-selectTwo
@@ -119,7 +119,7 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label"><?php echo translate('sales_unit'); ?> <span class="required">*</span></label>
+						<label class="col-md-3 control-label"><?php echo translate('sales_unit'); ?></label>
 						<div class="col-md-6">
 							<?php
 								echo form_dropdown("sales_unit", $unitlist, set_value("sales_unit"), "class='form-control prounit' data-plugin-selectTwo
@@ -129,9 +129,9 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label"><?php echo translate('unit_ratio'); ?> <span class="required">*</span></label>
+						<label class="col-md-3 control-label"><?php echo translate('unit_ratio'); ?></label>
 						<div class="col-md-6">
-							<input type="text" class="form-control" name="unit_ratio" id="unit_ratio" value="" placeholder="Eg. Purchase Unit : KG & Sales Unit : Gram = Ratio : 1000"  />
+							<input type="text" class="form-control" name="unit_ratio" id="unit_ratio" value="1" placeholder="Eg. Purchase Unit : KG & Sales Unit : Gram = Ratio : 1000"  />
 							<span class="error"></span>
 						</div>
 					</div>

@@ -106,15 +106,17 @@ class Fees_model extends MY_Model
         $this->db->group_end();
         $paid = $this->db->get()->row_array();
 
-        $paid_amount = isset($paid['amount']) ? $paid['amount'] : 0;
-        $paid_discount = isset($paid['discount']) ? $paid['discount'] : 0;
-        $balance_total = isset($balance['total']) ? $balance['total'] : 0;
+        $paid_amount = isset($paid['amount']) ? floatval($paid['amount']) : 0;
+        $paid_discount = isset($paid['discount']) ? floatval($paid['discount']) : 0;
+        $balance_total = isset($balance['total']) ? floatval($balance['total']) : 0;
+        $total_paid_credit = $paid_amount + $paid_discount;
+        $total_required = $balance_total + floatval($trans_amount);
 
-        if ($paid_amount == 0) {
+        if ($total_paid_credit == 0) {
             $status = 'unpaid';
-        } elseif (($balance_total + $trans_amount) == ($paid_amount + $paid_discount)) {
+        } elseif ($total_paid_credit >= $total_required) {
             $status = 'total';
-        } elseif ($paid_amount > 1) {
+        } elseif ($total_paid_credit > 0) {
             $status = 'partly';
         }
         return array('status' => $status, 'invoice_no' => $invNo);
@@ -138,19 +140,24 @@ class Fees_model extends MY_Model
 
     public function getInvoiceBasic($enrollID = '')
     {
+        if (empty($enrollID)) {
+            return array();
+        }
         $sessionID = get_session_id();
-        $this->db->select('s.id,s.register_no,e.branch_id,e.id as enroll_id,s.first_name,s.last_name,s.stoppage_point_id,s.email as student_email,s.current_address as student_address,c.name as class_name,b.school_name,b.email as school_email,b.mobileno as school_mobileno,b.address as school_address,p.father_name,se.name as section_name');
+        $this->db->select('s.id,s.id as student_id,s.register_no,e.branch_id,e.id as enroll_id,s.first_name,s.last_name,s.stoppage_point_id,s.email as student_email,s.current_address as student_address,c.name as class_name,b.school_name,b.email as school_email,b.mobileno as school_mobileno,b.address as school_address,p.father_name,se.name as section_name');
         $this->db->from('enroll as e');
         $this->db->join('student as s', 's.id = e.student_id', 'inner');
         $this->db->join('class as c', 'c.id = e.class_id', 'left');
         $this->db->join('section as se', 'se.id = e.section_id', 'left');
         $this->db->join('parent as p', 'p.id = s.parent_id', 'left');
         $this->db->join('branch as b', 'b.id = e.branch_id', 'left');
-        if (!is_superadmin_loggedin()) {
-            $this->db->where('e.branch_id', get_loggedin_branch_id());
+        if (!is_superadmin_loggedin() && !is_student_loggedin() && !is_parent_loggedin()) {
+            $branchID = get_loggedin_branch_id();
+            if (!empty($branchID)) {
+                $this->db->where('e.branch_id', $branchID);
+            }
         }
         $this->db->where('e.id', $enrollID);
-        $this->db->where('e.session_id', $sessionID);
         return $this->db->get()->row_array();
     }
 
@@ -248,7 +255,7 @@ class Fees_model extends MY_Model
             $this->datatables->where('e.class_id', $class_id);
         }
         if (!empty($section_id)) {
-            $this->db->where('e.section_id', $section_id);
+            $this->datatables->where('e.section_id', $section_id);
         }
         // filter classes by teacher assigned classes
         if ($assigned_cs_list != false && !empty($assigned_cs_list)) {
@@ -265,62 +272,68 @@ class Fees_model extends MY_Model
             $this->datatables->group_end();
         }
         $this->datatables->search_value('s.first_name,s.last_name,s.register_no,s.mobileno');
-        $this->datatables->column_order('e.id,s.first_name,c.id,se.id,s.register_no,e.roll,s.mobileno,fa.id');
-        $this->datatables->group_by('fa.student_id');
-        $this->datatables->order_by('fa.id', 'asc');
+        $this->datatables->column_order('e.id,s.first_name,c.name,se.name,s.register_no,e.roll,s.mobileno,fa.id,e.id,e.id');
+        $this->datatables->group_by('fa.student_id, e.id, e.student_id, e.roll, s.first_name, s.last_name, s.register_no, s.mobileno, c.name, se.name');
+        $this->datatables->order_by('e.id', 'asc');
         $results = $this->datatables->generate();
         $records = array();
         $records = json_decode($results);
         $data = array();
-        foreach ($records->data as $key => $record) {
-            $full_name = $record->first_name . ' ' . $record->last_name;
-            // actions btn
-            $actions = '<button type="button" data-loading-text="<i class=\'fas fa-spinner fa-spin\'></i>" data-placement="top" data-toggle="tooltip" data-original-title="' . translate('email') . " " . translate('invoice') . '" class="btn btn-default icon btn-circle" onclick="pdf_sendByemail(' . "'" . $record->enroll_id . "'" . ', this)"><i class="fa-solid fa-envelope"></i></button>';
-            if (get_permission('collect_fees', 'is_add')) {
-                $actions .= '<a href="' . base_url('fees/invoice/' . $record->enroll_id) . '" class="btn btn-default btn-circle"><i class="far fa-arrow-alt-circle-right"></i> ' . translate('collect') . '</a>';
-            }
-            if (get_permission('invoice', 'is_delete')) {
-                $actions .= btn_delete('fees/invoice_delete/' . $record->enroll_id);
-            }
+        if (!empty($records) && isset($records->data) && is_array($records->data)) {
+            foreach ($records->data as $key => $record) {
+                $record = (object) $record;
+                $full_name = (isset($record->first_name) ? $record->first_name : '') . ' ' . (isset($record->last_name) ? $record->last_name : '');
+                // actions btn
+                $actions = '<button type="button" data-loading-text="<i class=\'fas fa-spinner fa-spin\'></i>" data-placement="top" data-toggle="tooltip" data-original-title="' . translate('email') . " " . translate('invoice') . '" class="btn btn-default icon btn-circle" onclick="pdf_sendByemail(' . "'" . $record->enroll_id . "'" . ', this)"><i class="fa-solid fa-envelope"></i></button>';
+                if (get_permission('collect_fees', 'is_add')) {
+                    $actions .= '<a href="' . base_url('fees/invoice/' . $record->enroll_id) . '" class="btn btn-default btn-circle"><i class="far fa-arrow-alt-circle-right"></i> ' . translate('collect') . '</a>';
+                }
+                if (get_permission('invoice', 'is_delete')) {
+                    $actions .= btn_delete('fees/invoice_delete/' . $record->enroll_id);
+                }
 
-            // dt-data array
-            $row = array();
-            $row[] = '<div class="checked-area"><div class="checkbox-replace"><label class="i-checks"><input type="checkbox" name="student_id[]" value="' . $record->enroll_id . '"><i></i></label></div></div>';
-            $row[] = '<a class="hidden-print" href="' . base_url('student/profile/') . $record->enroll_id . '">' . $full_name . '</a>' . '<span class="visible-print">' . $full_name . '</span>';
-            $row[] = $record->class_name;
-            $row[] = $record->section_name;
-            $row[] = $record->register_no;
-            $row[] = $record->roll;
-            $row[] = $record->mobileno;
-            // getting fees group list
-            $feegroup = $this->getfeeGroup($record->enroll_id);
-            $groupList = '';
-            foreach ($feegroup as $key => $value) {
-                $groupList .= "- " . $value['name'] . "<br>";
-            }
-            $row[] = $groupList;
-            // fees status
-            $labelmode = '';
-            $status = $this->getInvoiceStatus($record->enroll_id)['status'];
-            if ($status == 'unpaid') {
-                $status = translate('unpaid');
-                $labelmode = 'label-danger-custom';
-            } elseif ($status == 'partly') {
-                $status = translate('partly_paid');
-                $labelmode = 'label-info-custom';
-            } elseif ($status == 'total') {
-                $status = translate('total_paid');
-                $labelmode = 'label-success-custom';
-            }
-            $row[] = "<span class='value label " . $labelmode . " '>" . $status . "</span>";
-            $row[] = $actions;
+                // dt-data array
+                $row = array();
+                $row[] = '<div class="checked-area"><div class="checkbox-replace"><label class="i-checks"><input type="checkbox" name="student_id[]" value="' . $record->enroll_id . '"><i></i></label></div></div>';
+                $row[] = '<a class="hidden-print" href="' . base_url('student/profile/') . $record->enroll_id . '">' . $full_name . '</a>' . '<span class="visible-print">' . $full_name . '</span>';
+                $row[] = isset($record->class_name) ? $record->class_name : '';
+                $row[] = isset($record->section_name) ? $record->section_name : '';
+                $row[] = isset($record->register_no) ? $record->register_no : '';
+                $row[] = isset($record->roll) ? $record->roll : '';
+                $row[] = isset($record->mobileno) ? $record->mobileno : '';
+                // getting fees group list
+                $feegroup = $this->getfeeGroup($record->enroll_id);
+                $groupList = '';
+                if (is_array($feegroup)) {
+                    foreach ($feegroup as $gkey => $value) {
+                        $groupList .= "- " . $value['name'] . "<br>";
+                    }
+                }
+                $row[] = $groupList;
+                // fees status
+                $labelmode = '';
+                $status_info = $this->getInvoiceStatus($record->enroll_id);
+                $status = isset($status_info['status']) ? $status_info['status'] : '';
+                if ($status == 'unpaid') {
+                    $status = translate('unpaid');
+                    $labelmode = 'label-danger-custom';
+                } elseif ($status == 'partly') {
+                    $status = translate('partly_paid');
+                    $labelmode = 'label-info-custom';
+                } elseif ($status == 'total') {
+                    $status = translate('total_paid');
+                    $labelmode = 'label-success-custom';
+                }
+                $row[] = "<span class='value label " . $labelmode . " '>" . $status . "</span>";
+                $row[] = $actions;
 
-            $data[] = $row;
+                $data[] = $row;
+            }
         }
         $json_data = array(
-            "draw" => intval($records->draw),
-            "recordsTotal" => intval($records->recordsTotal),
-            "recordsFiltered" => intval($records->recordsFiltered),
+            "draw" => !empty($records->draw) ? intval($records->draw) : intval($this->input->post('draw')),
+            "recordsTotal" => !empty($records->recordsTotal) ? intval($records->recordsTotal) : 0,
+            "recordsFiltered" => !empty($records->recordsFiltered) ? intval($records->recordsFiltered) : 0,
             "data" => $data,
         );
         return json_encode($json_data);
@@ -646,8 +659,8 @@ class Fees_model extends MY_Model
         if ($systemFeesType == 1) {
             $totalAmount = get_type_name_by_id('fee_allocation', $allocationID, 'prev_due');
         } else {
-            $totalAmount = $this->db->select('amount')->where(array('fee_groups_id' => $groupsID, 'fee_type_id' => $typeID))->get('fee_groups_details')->row_array();
-            $totalAmount = $totalAmount['amount'];
+            $getAmt = $this->db->select('amount')->where(array('fee_groups_id' => $groupsID, 'fee_type_id' => $typeID))->get('fee_groups_details')->row_array();
+            $totalAmount = isset($getAmt['amount']) ? $getAmt['amount'] : 0;
         }
 
         $this->db->select('IFNULL(sum(p.amount), 0) as total_amount,IFNULL(sum(p.discount), 0) as total_discount,IFNULL(sum(p.fine), 0) as total_fine');
@@ -655,8 +668,8 @@ class Fees_model extends MY_Model
         $this->db->where('p.allocation_id', $allocationID);
         $this->db->where('p.type_id', $typeID);
         $paid = $this->db->get()->row_array();
-        $balance = $totalAmount - ($paid['total_amount'] + $paid['total_discount']);
-        $total_fine = $paid['total_fine'];
+        $balance = floatval($totalAmount) - (floatval($paid['total_amount']) + floatval($paid['total_discount']));
+        $total_fine = isset($paid['total_fine']) ? $paid['total_fine'] : 0;
         return array('balance' => $balance, 'fine' => $total_fine);
     }
 
@@ -802,6 +815,158 @@ class Fees_model extends MY_Model
         } else {
             return false;
         }
+    }
+
+    public function getStudentPreviousSessionDues($student_id, $current_session_id, $branch_id)
+    {
+        if (empty($student_id)) {
+            return array(
+                'sessions' => array(),
+                'total_due' => 0
+            );
+        }
+        $this->db->select('e.id as enroll_id, e.session_id, e.class_id, e.section_id, s.school_year, c.name as class_name, se.name as section_name');
+        $this->db->from('enroll as e');
+        $this->db->join('schoolyear as s', 's.id = e.session_id', 'left');
+        $this->db->join('class as c', 'c.id = e.class_id', 'left');
+        $this->db->join('section as se', 'se.id = e.section_id', 'left');
+        $this->db->where('e.student_id', $student_id);
+        $this->db->where('e.session_id !=', $current_session_id);
+        $this->db->order_by('e.session_id', 'desc');
+        $enrolls = $this->db->get()->result_array();
+
+        $school = $this->get('branch', array('id' => $branch_id), true);
+        $due_with_fine = isset($school['due_with_fine']) ? $school['due_with_fine'] : 0;
+
+        $dues = array();
+        $total_due = 0;
+        foreach ($enrolls as $enroll) {
+            $balance = $this->getPreviousSessionBalance($enroll['enroll_id'], $enroll['session_id'], $due_with_fine);
+            $dues[] = array(
+                'enroll_id' => $enroll['enroll_id'],
+                'session_id' => $enroll['session_id'],
+                'school_year' => $enroll['school_year'],
+                'class_name' => $enroll['class_name'],
+                'section_name' => $enroll['section_name'],
+                'balance' => $balance
+            );
+            $total_due += $balance;
+        }
+
+        return array(
+            'sessions' => $dues,
+            'total_due' => $total_due
+        );
+    }
+
+    public function getStudentCarryFeesAllocation($enroll_id, $session_id)
+    {
+        $sql = "SELECT fa.id as allocation_id, fa.group_id, fa.prev_due, fgd.fee_type_id, ft.name as type_name, fgd.due_date 
+                FROM fee_allocation fa 
+                JOIN fee_groups fg ON fg.id = fa.group_id 
+                JOIN fee_groups_details fgd ON fgd.fee_groups_id = fg.id 
+                JOIN fees_type ft ON ft.id = fgd.fee_type_id 
+                WHERE fa.student_id = " . $this->db->escape($enroll_id) . " 
+                AND fa.session_id = " . $this->db->escape($session_id) . " 
+                AND ft.name = 'Carry Fees' 
+                AND ft.system = 1 
+                LIMIT 1";
+        $row = $this->db->query($sql)->row_array();
+        if ($row) {
+            $b = $this->getBalance($row['allocation_id'], $row['fee_type_id']);
+            $row['balance'] = $b['balance'];
+            $row['fine'] = $b['fine'];
+            $deposit = $this->getStudentFeeDeposit($row['allocation_id'], $row['fee_type_id']);
+            $row['paid'] = $deposit['total_amount'];
+            $row['discount'] = $deposit['total_discount'];
+            return $row;
+        }
+        return false;
+    }
+
+    public function saveStudentCarryFees($data = array())
+    {
+        $type_name = "Carry Fees";
+        $group_name = "Carry Fees";
+        $branchID = $data['branch_id'];
+        $sessionID = $data['session_id'];
+        $studentID = $data['student_id'];
+        $amount = (float)$data['amount'];
+        $dueDate = empty($data['due_date']) ? date('Y-m-d') : $data['due_date'];
+
+        $fee_type_id = 0;
+        $fee_group_id = 0;
+
+        // 1. fees_type (system = 1 ensures it's system-managed and isolated)
+        $arrayType = array(
+            'name' => $type_name,
+            'branch_id' => $branchID,
+            'system' => 1,
+        );
+        $fee_type_exists = $this->checkExistsData('fees_type', $arrayType);
+        if (!$fee_type_exists) {
+            $arrayType['fee_code'] = 'carry-fees';
+            $this->db->insert('fees_type', $arrayType);
+            $fee_type_id = $this->db->insert_id();
+        } else {
+            $fee_type_id = $fee_type_exists->id;
+        }
+
+        // 2. fee_groups (system = 1)
+        $arrayGroup = array(
+            'name' => $group_name,
+            'branch_id' => $branchID,
+            'session_id' => $sessionID,
+            'system' => 1,
+        );
+        $fee_group_exists = $this->checkExistsData('fee_groups', $arrayGroup);
+        if (!$fee_group_exists) {
+            $this->db->insert('fee_groups', $arrayGroup);
+            $fee_group_id = $this->db->insert_id();
+        } else {
+            $fee_group_id = $fee_group_exists->id;
+        }
+
+        // 3. fee_groups_details (amount = 0 because each student has individual prev_due)
+        $arrayGroupsDetails = array(
+            'fee_groups_id' => $fee_group_id,
+            'fee_type_id' => $fee_type_id,
+        );
+        $fee_group_details_exists = $this->checkExistsData('fee_groups_details', $arrayGroupsDetails);
+        if (!$fee_group_details_exists) {
+            $arrayGroupsDetails['amount'] = 0;
+            $arrayGroupsDetails['due_date'] = $dueDate;
+            $this->db->insert('fee_groups_details', $arrayGroupsDetails);
+        } else {
+            $this->db->where('id', $fee_group_details_exists->id)->update('fee_groups_details', array('due_date' => $dueDate));
+        }
+
+        // 4. fee_allocation: assigned STRICTLY to $studentID (enroll_id)
+        $arrayAllocation = array(
+            'student_id' => $studentID,
+            'group_id' => $fee_group_id,
+            'branch_id' => $branchID,
+            'session_id' => $sessionID,
+        );
+        $fee_allocation_exists = $this->checkExistsData('fee_allocation', $arrayAllocation);
+        if (!$fee_allocation_exists) {
+            $arrayAllocation['prev_due'] = $amount;
+            $this->db->insert('fee_allocation', $arrayAllocation);
+        } else {
+            $this->db->where('id', $fee_allocation_exists->id);
+            $this->db->update('fee_allocation', array('prev_due' => $amount));
+        }
+        return true;
+    }
+
+    public function deleteStudentCarryFees($enroll_id, $session_id)
+    {
+        $existing = $this->getStudentCarryFeesAllocation($enroll_id, $session_id);
+        if ($existing && $existing['paid'] == 0) {
+            $this->db->where('id', $existing['allocation_id'])->delete('fee_allocation');
+            return true;
+        }
+        return false;
     }
 
     public function getStudentTransportFees($enroll_id = '', $stoppage_point_id = '')

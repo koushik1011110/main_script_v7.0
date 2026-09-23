@@ -94,8 +94,8 @@ endif;
 							<label class="control-label"><?=translate('admission_date')?><?php echo $admission_date['required'] == 1 ? ' <span class="required">*</span>' : ''; ?></label>
 							<div class="input-group">
 								<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>
-								<input type="text" class="form-control" name="admission_date" value="<?=set_value('admission_date', date('Y-m-d'))?>" data-plugin-datepicker
-								data-plugin-options='{ "todayHighlight" : true }' />
+								<input type="text" class="form-control" name="admission_date" value="<?=set_value('admission_date', date('d-m-Y'))?>" data-plugin-datepicker
+								data-plugin-options='{ "todayHighlight" : true, "format": "dd-mm-yyyy" }' />
 							</div>
 							<span class="error"></span>
 						</div>
@@ -224,7 +224,7 @@ endif;
 							<div class="input-group">
 								<span class="input-group-addon"><i class="fas fa-birthday-cake"></i></span>
 								<input type="text" autocomplete="off" class="form-control" name="birthday" value="<?=set_value('birthday')?>" data-plugin-datepicker
-								data-plugin-options='{ "startView": 2 }' />
+								data-plugin-options='{ "startView": 2, "format": "dd-mm-yyyy" }' />
 							</div>
 							<span class="error"></span>
 						</div>
@@ -345,6 +345,19 @@ endif;
 					<?php } ?>
 				</div>
 
+				<div class="row">
+					<div class="col-md-6 mb-sm">
+						<div class="form-group">
+							<label class="control-label"><?=translate('aadhar_card')?></label>
+							<div class="input-group">
+								<span class="input-group-addon"><i class="far fa-id-card"></i></span>
+								<input type="text" class="form-control" name="aadhar_card" value="<?=set_value('aadhar_card')?>" placeholder="<?=translate('aadhar_card')?>" />
+							</div>
+							<span class="error"></span>
+						</div>
+					</div>
+				</div>
+
 				<!--custom fields details-->
 				<div class="row" id="customFields">
 					<?php echo render_custom_Fields('student'); ?>
@@ -353,9 +366,10 @@ endif;
 				<div class="row">
 					<?php 
 					$student_photo = $this->student_fields_model->getStatus('student_photo', $branch_id);
+					$photo_col = $student_photo['status'] ? 6 : 12;
 					if ($student_photo['status']) {
 					?>
-					<div class="col-md-12 mb-sm">
+					<div class="col-md-6 mb-sm">
 						<div class="form-group">
 							<label for="input-file-now"><?=translate('profile_picture')?><?php echo $student_photo['required'] == 1 ? ' <span class="required">*</span>' : ''; ?></label>
 							<input type="file" name="user_photo" class="dropify" data-default-file="<?=get_image_url('student')?>" />
@@ -363,6 +377,13 @@ endif;
 						</div>
 					</div>
 					<?php } ?>
+					<div class="col-md-<?php echo $photo_col; ?> mb-sm">
+						<div class="form-group">
+							<label for="input-file-now"><?=translate('upload_documents')?> (<?=translate('aadhar_card')?> / <?=translate('document')?>)</label>
+							<input type="file" name="document_file" class="dropify" data-height="120" data-default-file="" />
+							<span class="error"></span>
+						</div>
+					</div>
 				</div>
 
 				<div class="<?=$getBranch['stu_generate'] == 1 || $getBranch['stu_generate'] == "" ? 'hidden-div' : '' ?>" id="stuLogin">

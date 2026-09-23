@@ -174,6 +174,12 @@
 
 	<div class="header-right">
 		<ul class="header-menu">
+			<!-- AI Assistant Button -->
+			<li>
+				<a href="javascript:void(0);" id="btn-ai-assistant" class="header-menu-icon" data-toggle="tooltip" data-placement="bottom" data-original-title="AI Assistant (Gemini)">
+					<i class="fas fa-robot text-primary" style="font-size: 19px;"></i>
+				</a>
+			</li>
 <?php 
 if (is_student_loggedin()):
 	$this->db->select('enroll.id,class.name as class_name,section.name as section_name');

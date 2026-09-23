@@ -62,11 +62,22 @@ $active_tab = $this->session->flashdata('active_tab');
 										<p class="h5 mb-xs text-dark text-weight-semibold"><?php echo translate('sale_to'); ?> :</p>
 										<address>
 											<?php
-											$stuDetails = $this->application_model->getUserNameByRoleID($billdata['role_id'], $billdata['user_id']);
-											echo $stuDetails['name'] . '<br>';
-											echo translate('roles') . " : " . $billdata['role_name'] . '<br>';
-											echo empty($stuDetails['email']) ? '' : translate('email') . " : " . ($stuDetails['email'] . '<br>');
-											echo empty($stuDetails['mobileno']) ? '' : (translate('mobile_no') . " : " . $stuDetails['mobileno'] . '<br>');
+											if (!empty($billdata['customer_name'])) {
+												$custName = $billdata['customer_name'];
+												$custRole = !empty($billdata['role_name']) ? $billdata['role_name'] : translate('customer');
+												$custPhone = !empty($billdata['customer_phone']) ? $billdata['customer_phone'] : '';
+												$custEmail = '';
+											} else {
+												$stuDetails = $this->application_model->getUserNameByRoleID($billdata['role_id'], $billdata['user_id']);
+												$custName = !empty($stuDetails['name']) ? $stuDetails['name'] : 'Walk-in Customer';
+												$custRole = !empty($billdata['role_name']) ? $billdata['role_name'] : translate('customer');
+												$custPhone = !empty($stuDetails['mobileno']) ? $stuDetails['mobileno'] : '';
+												$custEmail = !empty($stuDetails['email']) ? $stuDetails['email'] : '';
+											}
+											echo $custName . '<br>';
+											echo translate('roles') . " : " . $custRole . '<br>';
+											echo empty($custEmail) ? '' : translate('email') . " : " . ($custEmail . '<br>');
+											echo empty($custPhone) ? '' : (translate('mobile_no') . " : " . $custPhone . '<br>');
 											?>
 										</address>
 									</div>
@@ -206,11 +217,22 @@ $active_tab = $this->session->flashdata('active_tab');
 										<p class="h5 mb-xs text-dark text-weight-semibold"><?php echo translate("to"); ?> :</p>
 										<address>
 											<?php
-											$stuDetails = $this->application_model->getUserNameByRoleID($billdata['role_id'], $billdata['user_id']);
-											echo $stuDetails['name'] . '<br>';
-											echo translate('roles') . " : " . $billdata['role_name'] . '<br>';
-											echo empty($stuDetails['email']) ? '' : translate('email') . " : " . ($stuDetails['email'] . '<br>');
-											echo empty($stuDetails['mobileno']) ? '' : (translate('mobile_no') . " : " . $stuDetails['mobileno'] . '<br>');
+											if (!empty($billdata['customer_name'])) {
+												$custName = $billdata['customer_name'];
+												$custRole = !empty($billdata['role_name']) ? $billdata['role_name'] : translate('customer');
+												$custPhone = !empty($billdata['customer_phone']) ? $billdata['customer_phone'] : '';
+												$custEmail = '';
+											} else {
+												$stuDetails = $this->application_model->getUserNameByRoleID($billdata['role_id'], $billdata['user_id']);
+												$custName = !empty($stuDetails['name']) ? $stuDetails['name'] : 'Walk-in Customer';
+												$custRole = !empty($billdata['role_name']) ? $billdata['role_name'] : translate('customer');
+												$custPhone = !empty($stuDetails['mobileno']) ? $stuDetails['mobileno'] : '';
+												$custEmail = !empty($stuDetails['email']) ? $stuDetails['email'] : '';
+											}
+											echo $custName . '<br>';
+											echo translate('roles') . " : " . $custRole . '<br>';
+											echo empty($custEmail) ? '' : translate('email') . " : " . ($custEmail . '<br>');
+											echo empty($custPhone) ? '' : (translate('mobile_no') . " : " . $custPhone . '<br>');
 											?>
 										</address>
 									</div>

@@ -92,8 +92,8 @@
 				<tr>
 					<td><?php echo $count++; ?></td>
 					<td><?php echo html_escape($row['bill_no']); ?></td>
-					<td><?php echo $this->application_model->getUserNameByRoleID($row['role_id'], $row['user_id'])['name']; ?></td>
-					<td><?php echo html_escape($row['role_name']); ?></td>
+					<td><?php echo !empty($row['customer_name']) ? html_escape($row['customer_name']) : $this->application_model->getUserNameByRoleID($row['role_id'], $row['user_id'])['name']; ?></td>
+					<td><?php echo !empty($row['role_name']) ? html_escape($row['role_name']) : translate('customer'); ?></td>
 					<td>
 						<?php
 							$labelMode = "";

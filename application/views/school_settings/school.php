@@ -373,6 +373,65 @@
                         </div>
                     </section>
 
+                    <!-- WhatsApp API Settings -->
+                    <section class="panel pg-fw">
+                        <div class="panel-body">
+                            <h5 class="chart-title mb-xs"><i class="fab fa-whatsapp text-success"></i> WhatsApp API Settings (Fee Payment Alerts)</h5>
+                            <div class="mt-lg">
+                                <div class="form-group mb-md">
+                                    <label class="col-md-3 control-label"><?=translate('whatsapp_notifications');?></label>
+                                    <div class="col-md-6">
+                                        <?php
+                                        $waStatus = array(
+                                            '1' => translate('enabled'), 
+                                            '0' => translate('disabled'), 
+                                        );
+                                        echo form_dropdown("whatsapp_status", $waStatus, set_value('whatsapp_status', isset($school['whatsapp_status']) ? $school['whatsapp_status'] : 1), "class='form-control' id='whatsapp_status' 
+                                        data-plugin-selectTwo data-width='100%' data-minimum-results-for-search='Infinity'");
+                                        ?>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label"><?=translate('whatsapp_api_url')?> <span class="required">*</span></label>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" name="whatsapp_api_url" value="<?php echo !empty($school['whatsapp_api_url']) ? $school['whatsapp_api_url'] : 'https://waba.kkwebmart.in/api/v1' ?>" placeholder="https://waba.kkwebmart.in/api/v1" />
+                                        <span class="error"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label"><?=translate('whatsapp_api_key')?> <span class="required">*</span></label>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" name="whatsapp_api_key" value="<?php echo !empty($school['whatsapp_api_key']) ? $school['whatsapp_api_key'] : 'kkwaba_live_6Zl4DD-P-JylxkORDszcDvDg_jreH6RS0OdPGdWKx_0' ?>" placeholder="kkwaba_live_..." />
+                                        <span class="error"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label"><?=translate('template_name')?></label>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" name="whatsapp_template_name" value="<?php echo !empty($school['whatsapp_template_name']) ? $school['whatsapp_template_name'] : 'payment_rechived' ?>" placeholder="payment_rechived" />
+                                        <span class="help-block"><small>Template: <code>payment_rechived</code></small></span>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-md">
+                                    <div class="col-md-offset-3 col-md-6">
+                                        <div class="checkbox-replace mr-lg" style="display:inline-block; margin-right: 20px;">
+                                            <label class="i-checks">
+                                                <input type="checkbox" name="whatsapp_student_notification" <?=((!isset($school['whatsapp_student_notification']) || $school['whatsapp_student_notification'] == 1) ? 'checked' : '');?>>
+                                                <i></i> <?=translate('notify_student')?>
+                                            </label>
+                                        </div>
+                                        <div class="checkbox-replace" style="display:inline-block;">
+                                            <label class="i-checks">
+                                                <input type="checkbox" name="whatsapp_parent_notification" <?=((!isset($school['whatsapp_parent_notification']) || $school['whatsapp_parent_notification'] == 1) ? 'checked' : '');?>>
+                                                <i></i> <?=translate('notify_parent')?>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- Automatically Generate Login Details -->
                     <section class="panel pg-fw">
                         <div class="panel-body">

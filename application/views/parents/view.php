@@ -37,6 +37,13 @@
 	<div class="col-md-12">
 		<section class="panel">
 			<header class="panel-heading">
+			<?php if (get_permission('parent', 'is_delete')): ?>
+				<div class="panel-btn">
+					<button class="btn btn-default btn-circle" id="parent_bulk_delete" data-loading-text="<i class='fas fa-spinner fa-spin'></i> Processing">
+						<i class="fas fa-trash-alt"></i> <?=translate('bulk_delete')?>
+					</button>
+				</div>
+			<?php endif; ?>
 				<h4 class="panel-title">
 					<i class="fas fa-users"></i> <?=translate('parents_list')?>
 				</h4>
@@ -46,6 +53,13 @@
 					<table class="table table-bordered table-hover table-condensed mb-none table-export">
 						<thead>
 							<tr>
+							<?php if (get_permission('parent', 'is_delete')): ?>
+								<th width="10" class="no-sort no-export">
+									<div class="checkbox-replace">
+										<label class="i-checks"><input type="checkbox" id="selectAllchkbox"><i></i></label>
+									</div>
+								</th>
+							<?php endif; ?>
 								<th><?=translate('sl')?></th>
 							<?php if (is_superadmin_loggedin()) { ?>
 								<th><?=translate('branch')?></th>
@@ -72,6 +86,15 @@
 								foreach($parentslist as $row):
 							?>	
 							<tr>
+							<?php if (get_permission('parent', 'is_delete')): ?>
+								<td class="checked-area" width="30px">
+									<div class="checkbox-replace">
+										<label class="i-checks">
+											<input type="checkbox" class="cb_bulkdelete" id="<?=$row->id?>"><i></i>
+										</label>
+									</div>
+								</td>
+							<?php endif; ?>
 								<td><?php echo $count++; ?></td>
 							<?php if (is_superadmin_loggedin()) { ?>
 								<td><?php echo get_type_name_by_id('branch', $row->branch_id);?></td>
@@ -107,4 +130,62 @@
 		</section>
 	</div>
 </div>
+<?php endif; ?>
+
+<?php if (get_permission('parent', 'is_delete')): ?>
+<script type="text/javascript">
+	$(document).ready(function () {
+		$('#parent_bulk_delete').on('click', function() {
+			var btn = $(this);
+			var arrayID = [];
+			$("input[type='checkbox'].cb_bulkdelete").each(function (index) {
+				if(this.checked) {
+					arrayID.push($(this).attr('id'));
+				}
+			});
+			if (arrayID.length != 0) {
+				swal({
+					title: "<?php echo translate('are_you_sure')?>",
+					text: "<?php echo translate('delete_this_information')?>",
+					type: "warning",
+					showCancelButton: true,
+					confirmButtonClass: "btn btn-default swal2-btn-default",
+					cancelButtonClass: "btn btn-default swal2-btn-default",
+					confirmButtonText: "<?php echo translate('yes_continue')?>",
+					cancelButtonText: "<?php echo translate('cancel')?>",
+					buttonsStyling: false,
+					footer: "<?php echo translate('deleted_note')?>"
+				}).then((result) => {
+					if (result.value) {
+						btn.button('loading');
+						$.ajax({
+							url: base_url + "parents/bulk_delete",
+							type: "POST",
+							dataType: "json",
+							data: { array_id : arrayID },
+							success:function(data) {
+								swal({
+									title: "<?php echo translate('deleted')?>",
+									text: data.message,
+									buttonsStyling: false,
+									showCloseButton: true,
+									focusConfirm: false,
+									confirmButtonClass: "btn btn-default swal2-btn-default",
+									type: data.status
+								}).then((result) => {
+									if (result.value) {
+										location.reload();
+									}
+								});
+							},
+							complete: function () {
+								btn.button('reset');
+							}
+						});
+					}
+				});
+			}
+		});
+	});
+</script>
 <?php endif; ?>

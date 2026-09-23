@@ -316,9 +316,12 @@ function get_activeChildren_id()
 // get table name by type and id
 function get_type_name_by_id($table, $type_id = '', $field = 'name')
 {
+    if (empty($type_id)) {
+        return '';
+    }
     $CI = &get_instance();
     $get = $CI->db->select($field)->from($table)->where('id', $type_id)->limit(1)->get()->row_array();
-    return $get[$field];
+    return !empty($get[$field]) ? $get[$field] : '';
 }
 
 // set session alert / flashdata

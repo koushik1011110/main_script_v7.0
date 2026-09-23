@@ -28,6 +28,12 @@ if (empty($student['previous_details'])) {
 					<?php } ?>
 					<li><div class="icon-holder" data-toggle="tooltip" data-original-title="<?=translate('class')?>"><i class="fas fa-school"></i></div> <?=$student['class_name'] . ' ('.$student['section_name'] . ')'?></li>
 					<li><div class="icon-holder" data-toggle="tooltip" data-original-title="<?=translate('mobile_no')?>"><i class="fas fa-phone-volume"></i></div> <?=(!empty($student['mobileno']) ? $student['mobileno'] : 'N/A'); ?></li>
+					<?php if (!empty($student['aadhar_card'])) { ?>
+					<li><div class="icon-holder" data-toggle="tooltip" data-original-title="<?=translate('aadhar_card')?>"><i class="far fa-id-card"></i></div> <?=$student['aadhar_card']?></li>
+					<?php } ?>
+					<?php if (!empty($student['doc'])) { ?>
+					<li><div class="icon-holder" data-toggle="tooltip" data-original-title="<?=translate('document')?>"><i class="fas fa-file-download"></i></div> <a href="<?=base_url('student/documents_download?file=' . $student['doc'])?>" target="_blank"><?=translate('download') . ' ' . translate('document')?></a></li>
+					<?php } ?>
 					<li><div class="icon-holder" data-toggle="tooltip" data-original-title="<?=translate('email')?>"><i class="far fa-envelope"></i></div> <?=(!empty($student['email']) ? $student['email'] : 'N/A'); ?></li>
 					<li><div class="icon-holder" data-toggle="tooltip" data-original-title="<?=translate('present_address')?>"><i class="fas fa-home"></i></div> <?=(!empty($student['current_address']) ? $student['current_address'] : 'N/A'); ?></li>
 				</ul>
@@ -181,7 +187,7 @@ $div = floatval(12 / $v);
 									<div class="input-group">
 										<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>
 										<input type="text" class="form-control" name="admission_date"
-										value="<?=set_value('admission_date', $student['admission_date'])?>" data-plugin-datepicker data-plugin-options='{ "todayHighlight" : true }' />
+										value="<?=set_value('admission_date', (!empty($student['admission_date']) ? date('d-m-Y', strtotime($student['admission_date'])) : ''))?>" data-plugin-datepicker data-plugin-options='{ "todayHighlight" : true, "format": "dd-mm-yyyy" }' />
 									</div>
 									<span class="error"><?=form_error('admission_date')?></span>
 								</div>
@@ -323,8 +329,8 @@ $div = ($v == 0) ? 12 : floatval(12 / $v);
 									<label class="control-label"><?=translate('birthday')?><?php echo $birthday['required'] == 1 ? ' <span class="required">*</span>' : ''; ?></label>
 									<div class="input-group">
 										<span class="input-group-addon"><i class="fas fa-birthday-cake"></i></span>
-										<input type="text" class="form-control" name="birthday" value="<?=set_value('birthday', $student['birthday'])?>" data-plugin-datepicker
-										data-plugin-options='{ "startView": 2 }' />
+										<input type="text" class="form-control" name="birthday" value="<?=set_value('birthday', (!empty($student['birthday']) ? date('d-m-Y', strtotime($student['birthday'])) : ''))?>" data-plugin-datepicker
+										data-plugin-options='{ "startView": 2, "format": "dd-mm-yyyy" }' />
 									</div>
 									<span class="error"><?=form_error('birthday')?></span>
 								</div>
@@ -445,6 +451,19 @@ if ($present_address['status']) {
 <?php } ?>
 						</div>
 
+						<div class="row">
+							<div class="col-md-6 mb-sm">
+								<div class="form-group">
+									<label class="control-label"><?=translate('aadhar_card')?></label>
+									<div class="input-group">
+										<span class="input-group-addon"><i class="far fa-id-card"></i></span>
+										<input type="text" class="form-control" name="aadhar_card" value="<?=set_value('aadhar_card', $student['aadhar_card'])?>" placeholder="<?=translate('aadhar_card')?>" />
+									</div>
+									<span class="error"><?=form_error('aadhar_card')?></span>
+								</div>
+							</div>
+						</div>
+
 						<!--custom fields details-->
 						<div class="row" id="customFields">
 							<?php echo render_custom_Fields('student', $student['branch_id'], $student['id']); ?>
@@ -453,9 +472,10 @@ if ($present_address['status']) {
 						<div class="row">
 <?php 
 $student_photo = $this->student_fields_model->getStatus('student_photo', $branchID);
+$photo_col = $student_photo['status'] ? 6 : 12;
 if ($student_photo['status']) {
 ?>
-							<div class="col-md-12 mb-sm">
+							<div class="col-md-6 mb-sm">
 								<div class="form-group">
 									<label for="input-file-now"><?=translate('profile_picture')?><?php echo $student_photo['required'] == 1 ? ' <span class="required">*</span>' : ''; ?></label>
 									<input type="file" name="user_photo" class="dropify" data-default-file="<?=get_image_url('student', $student['photo'])?>" />
@@ -464,6 +484,31 @@ if ($student_photo['status']) {
 								<span class="error"><?=form_error('user_photo')?></span>
 							</div>
 <?php } ?>
+							<div class="col-md-<?php echo $photo_col; ?> mb-sm">
+								<div class="form-group">
+									<label for="input-file-now"><?=translate('upload_documents')?> (<?=translate('aadhar_card')?> / <?=translate('document')?>)</label>
+									<?php 
+									$doc_file_url = '';
+									if (!empty($student['doc'])) {
+										$doc_path = FCPATH . 'uploads/attachments/documents/' . $student['doc'];
+										if (file_exists($doc_path)) {
+											$ext = strtolower(pathinfo($student['doc'], PATHINFO_EXTENSION));
+											if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+												$doc_file_url = base_url('uploads/attachments/documents/' . $student['doc']);
+											}
+										}
+									}
+									?>
+									<input type="file" name="document_file" class="dropify" data-height="120" data-default-file="<?=$doc_file_url?>" />
+									<input type="hidden" name="old_document_file" value="<?php echo $student['doc']; ?>" />
+									<?php if (!empty($student['doc'])): ?>
+										<div class="mt-xs">
+											<a href="<?=base_url('student/documents_download?file=' . $student['doc'])?>" class="btn btn-xs btn-default"><i class="fas fa-download"></i> <?=translate('download') . ' ' . translate('current_file')?> (<?=$student['doc']?>)</a>
+										</div>
+									<?php endif; ?>
+								</div>
+								<span class="error"><?=form_error('document_file')?></span>
+							</div>
 						</div>
 
 						<!-- login details -->

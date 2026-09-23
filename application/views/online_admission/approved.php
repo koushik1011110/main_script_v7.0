@@ -57,8 +57,8 @@
 							<label class="control-label"><?=translate('admission_date')?><?php echo $admission_date['required'] == 1 ? ' <span class="required">*</span>' : ''; ?></label>
 							<div class="input-group">
 								<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>
-								<input type="text" class="form-control" name="admission_date" value="<?=set_value('admission_date', date('Y-m-d'))?>" data-plugin-datepicker
-								data-plugin-options='{ "todayHighlight" : true }' />
+								<input type="text" class="form-control" name="admission_date" value="<?=set_value('admission_date', date('d-m-Y'))?>" data-plugin-datepicker
+								data-plugin-options='{ "todayHighlight" : true, "format": "dd-mm-yyyy" }' />
 							</div>
 							<span class="error"></span>
 						</div>
@@ -193,8 +193,8 @@
 							<label class="control-label"><?=translate('birthday')?><?php echo $birthday['required'] == 1 ? ' <span class="required">*</span>' : ''; ?></label>
 							<div class="input-group">
 								<span class="input-group-addon"><i class="fas fa-birthday-cake"></i></span>
-								<input type="text" autocomplete="off" class="form-control" name="birthday" value="<?=set_value('birthday', $stuDetails['birthday'])?>" data-plugin-datepicker
-								data-plugin-options='{ "startView": 2 }' />
+								<input type="text" autocomplete="off" class="form-control" name="birthday" value="<?=set_value('birthday', (!empty($stuDetails['birthday']) ? date('d-m-Y', strtotime($stuDetails['birthday'])) : ''))?>" data-plugin-datepicker
+								data-plugin-options='{ "startView": 2, "format": "dd-mm-yyyy" }' />
 							</div>
 							<span class="error"></span>
 						</div>
@@ -316,6 +316,19 @@
 					<?php } ?>
 				</div>
 
+				<div class="row">
+					<div class="col-md-6 mb-sm">
+						<div class="form-group">
+							<label class="control-label"><?=translate('aadhar_card')?></label>
+							<div class="input-group">
+								<span class="input-group-addon"><i class="far fa-id-card"></i></span>
+								<input type="text" class="form-control" name="aadhar_card" value="<?=set_value('aadhar_card', (isset($stuDetails['aadhar_card']) ? $stuDetails['aadhar_card'] : ''))?>" placeholder="<?=translate('aadhar_card')?>" />
+							</div>
+							<span class="error"></span>
+						</div>
+					</div>
+				</div>
+
 				<!--custom fields details-->
 				<div class="row" id="customFields">
 					<?php echo render_online_custom_fields('student', $stuDetails['branch_id'], $stuDetails['id']); ?>
@@ -324,10 +337,11 @@
 				<div class="row">
 					<?php 
 					$student_photo = $this->student_fields_model->getStatus('student_photo', $branchID);
+					$photo_col = $student_photo['status'] ? 6 : 12;
 					if ($student_photo['status']) {
 					?>
 					<input type="hidden" name="exist_student_photo" value="<?php echo $stuDetails['student_photo'] ?>">
-					<div class="col-md-12 mb-sm">
+					<div class="col-md-6 mb-sm">
 						<div class="form-group">
 							<label for="input-file-now"><?=translate('profile_picture')?><?php echo $student_photo['required'] == 1 ? ' <span class="required">*</span>' : ''; ?></label>
 							<input type="file" name="student_photo" class="dropify" data-default-file="<?=get_image_url('student', $stuDetails['student_photo'])?>" />
@@ -335,6 +349,37 @@
 						</div>
 					</div>
 					<?php } ?>
+					<div class="col-md-<?php echo $photo_col; ?> mb-sm">
+						<div class="form-group">
+							<label for="input-file-now"><?=translate('upload_documents')?> (<?=translate('aadhar_card')?> / <?=translate('document')?>)</label>
+							<?php
+							$doc_url = '';
+							if (!empty($stuDetails['doc'])) {
+								$doc_path = FCPATH . 'uploads/attachments/documents/' . $stuDetails['doc'];
+								$oa_doc_path = FCPATH . 'uploads/online_ad_documents/' . $stuDetails['doc'];
+								if (file_exists($doc_path)) {
+									$ext = strtolower(pathinfo($stuDetails['doc'], PATHINFO_EXTENSION));
+									if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+										$doc_url = base_url('uploads/attachments/documents/' . $stuDetails['doc']);
+									}
+								} else if (file_exists($oa_doc_path)) {
+									$ext = strtolower(pathinfo($stuDetails['doc'], PATHINFO_EXTENSION));
+									if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+										$doc_url = base_url('uploads/online_ad_documents/' . $stuDetails['doc']);
+									}
+								}
+							}
+							?>
+							<input type="file" name="document_file" class="dropify" data-height="120" data-default-file="<?=$doc_url?>" />
+							<input type="hidden" name="old_document_file" value="<?=(isset($stuDetails['doc']) ? $stuDetails['doc'] : '')?>">
+							<?php if (!empty($stuDetails['doc'])): ?>
+								<div class="mt-xs">
+									<a href="<?=base_url('uploads/online_ad_documents/' . $stuDetails['doc'])?>" target="_blank" class="btn btn-xs btn-default"><i class="fas fa-download"></i> <?=translate('download') . ' ' . translate('current_file')?> (<?=$stuDetails['doc']?>)</a>
+								</div>
+							<?php endif; ?>
+							<span class="error"></span>
+						</div>
+					</div>
 				</div>
 				<div class="<?=$getBranch['stu_generate'] == 1 || $getBranch['stu_generate'] == "" ? 'hidden-div' : '' ?>" id="stuLogin">
 					<!-- login details -->

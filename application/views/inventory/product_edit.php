@@ -32,9 +32,9 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label"><?php echo translate('product') . " " . translate('code'); ?> <span class="required">*</span></label>
+						<label class="col-md-3 control-label"><?php echo translate('product') . " " . translate('code'); ?></label>
 						<div class="col-md-6">
-							<input type="text" class="form-control" name="product_code" value="<?php echo html_escape($product['code']); ?>" autocomplete="off" />
+							<input type="text" class="form-control" name="product_code" value="<?php echo html_escape($product['code']); ?>" autocomplete="off" placeholder="<?=translate('optional')?>" />
 						</div>
 					</div>
 					<div class="form-group">
@@ -47,7 +47,7 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label"><?php echo translate('purchase_unit'); ?> <span class="required">*</span></label>
+						<label class="col-md-3 control-label"><?php echo translate('purchase_unit'); ?></label>
 						<div class="col-md-6">
 							<?php
 								echo form_dropdown("purchase_unit", $unitlist, set_value('purchase_unit', $product['purchase_unit_id']), "class='form-control prounit' data-plugin-selectTwo
@@ -57,7 +57,7 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label"><?php echo translate('sale_unit'); ?> <span class="required">*</span></label>
+						<label class="col-md-3 control-label"><?php echo translate('sale_unit'); ?></label>
 						<div class="col-md-6">
 							<?php
 								echo form_dropdown("sales_unit", $unitlist, set_value('sales_unit', $product['sales_unit_id']), "class='form-control prounit' data-plugin-selectTwo
@@ -67,9 +67,9 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label"><?php echo translate('unit_ratio'); ?> <span class="required">*</span></label>
+						<label class="col-md-3 control-label"><?php echo translate('unit_ratio'); ?></label>
 						<div class="col-md-6">
-							<input type="number" class="form-control" name="unit_ratio" id="unit_ratio" value="<?php echo html_escape($product['unit_ratio']); ?>" autocomplete="off" />
+							<input type="text" class="form-control" name="unit_ratio" id="unit_ratio" value="<?php echo html_escape(empty($product['unit_ratio']) ? '1' : $product['unit_ratio']); ?>" autocomplete="off" />
 							<span class="error"></span>
 						</div>
 					</div>

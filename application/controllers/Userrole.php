@@ -388,29 +388,42 @@ class Userrole extends User_Controller
     /* Start Studens Fees (Invoice) Controller */
     public function invoice()
     {
-        $this->data['headerelements'] = array(
-            'css' => array(
-                'vendor/dropify/css/dropify.min.css',
-            ),
-            'js' => array(
-                'vendor/dropify/js/dropify.min.js',
-            ),
-        );
-        $stu = $this->userrole_model->getStudentDetails();
-        $enrollID = isset($stu['enroll_id']) ? $stu['enroll_id'] : 0;
-        $this->data['config'] = $this->get_payment_config();
-        $this->data['getUser'] = $this->userrole_model->getUserDetails();
-        $this->data['getOfflinePaymentsConfig'] = $this->userrole_model->getOfflinePaymentsConfig();
-        $this->data['invoice'] = $this->fees_model->getInvoiceStatus($enrollID);
-        $this->data['basic'] = $this->fees_model->getInvoiceBasic($enrollID);
-        if (moduleIsEnabled('transport')) {
-            $stoppage_point_id = isset($this->data['basic']['stoppage_point_id']) ? $this->data['basic']['stoppage_point_id'] : 0;
-            $this->data['transport_fees'] = $this->fees_model->getStudentTransportFees($enrollID, $stoppage_point_id);
+        try {
+            $this->data['headerelements'] = array(
+                'css' => array(
+                    'vendor/dropify/css/dropify.min.css',
+                ),
+                'js' => array(
+                    'vendor/dropify/js/dropify.min.js',
+                ),
+            );
+            $stu = $this->userrole_model->getStudentDetails();
+            $enrollID = isset($stu['enroll_id']) ? $stu['enroll_id'] : 0;
+            $this->data['config'] = $this->get_payment_config();
+            $this->data['getUser'] = $this->userrole_model->getUserDetails();
+            $this->data['getOfflinePaymentsConfig'] = $this->userrole_model->getOfflinePaymentsConfig();
+            $this->data['invoice'] = $this->fees_model->getInvoiceStatus($enrollID);
+            $this->data['basic'] = $this->fees_model->getInvoiceBasic($enrollID);
+            if (empty($this->data['basic']) && !empty($stu)) {
+                $this->data['basic'] = $stu;
+            }
+            if (moduleIsEnabled('transport')) {
+                $stoppage_point_id = isset($this->data['basic']['stoppage_point_id']) ? $this->data['basic']['stoppage_point_id'] : 0;
+                $this->data['transport_fees'] = $this->fees_model->getStudentTransportFees($enrollID, $stoppage_point_id);
+            }
+            $this->data['title'] = translate('fees_history');
+            $this->data['main_menu'] = 'fees';
+            $this->data['sub_page'] = 'userrole/collect';
+            $this->load->view('layout/index', $this->data);
+        } catch (Throwable $e) {
+            log_message('error', 'Userrole Invoice Fatal: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            echo "<div style='margin:20px;padding:20px;background:#fff0f0;border:2px solid #e11d48;border-radius:8px;font-family:sans-serif;'>";
+            echo "<h3 style='color:#e11d48;margin-top:0;'>Student Invoice Error</h3>";
+            echo "<p><b>Message:</b> " . htmlspecialchars($e->getMessage()) . "</p>";
+            echo "<p><b>File:</b> " . htmlspecialchars($e->getFile()) . " (Line: " . $e->getLine() . ")</p>";
+            echo "</div>";
+            exit();
         }
-        $this->data['title'] = translate('fees_history');
-        $this->data['main_menu'] = 'fees';
-        $this->data['sub_page'] = 'userrole/collect';
-        $this->load->view('layout/index', $this->data);
     }
 
     public function offline_payments()

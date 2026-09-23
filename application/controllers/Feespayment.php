@@ -1544,6 +1544,7 @@ class Feespayment extends Admin_Controller
     {
         // insert in DB
         $this->db->insert('fee_payment_history', $data);
+        $payment_historyID = $this->db->insert_id();
 
         // transaction voucher save function
         $getSeeting = $this->fees_model->get('transactions_links', array('branch_id' => get_loggedin_branch_id()), true);
@@ -1554,6 +1555,26 @@ class Feespayment extends Admin_Controller
                 'date' => $data['date'],
             );
             $this->fees_model->saveTransaction($arrayTransaction);
+        }
+
+        // send automatic whatsapp template message for online payment
+        $params = $this->session->userdata('params');
+        $student_id = !empty($params['student_id']) ? $params['student_id'] : (isset($data['student_id']) ? $data['student_id'] : null);
+        if (!empty($student_id)) {
+            $this->load->model('whatsapp_model');
+            $netPaid = $data['amount'] + $data['fine'];
+            $feeDescription = translate('online_fees_payment');
+            if (!empty($data['type_id'])) {
+                $tName = get_type_name_by_id('fees_type', $data['type_id']);
+                if (!empty($tName)) {
+                    $feeDescription = $tName;
+                }
+            } elseif (!empty($data['transport_fee_details_id'])) {
+                $month = get_type_name_by_id('transport_fee_details', $data['transport_fee_details_id'], 'month');
+                $feeDescription = translate('transport_fees') . ' (' . $this->app_lib->getMonthslist($month) . ')';
+            }
+            $receiptNo = 'REC-' . str_pad($payment_historyID, 5, '0', STR_PAD_LEFT);
+            $this->whatsapp_model->send_fee_payment_notification($student_id, $netPaid, $feeDescription, _d($data['date']), $receiptNo);
         }
     }
 }

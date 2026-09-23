@@ -218,6 +218,51 @@ class Parents extends Admin_Controller
         }
     }
 
+    /* parents bulk delete */
+    public function bulk_delete()
+    {
+        if ($_POST) {
+            if (get_permission('parent', 'is_delete')) {
+                $arrayID = $this->input->post('array_id');
+                if (!empty($arrayID) && is_array($arrayID)) {
+                    foreach ($arrayID as $row) {
+                        $branchID = get_type_name_by_id('parent', $row, 'branch_id');
+                        if (!is_superadmin_loggedin()) {
+                            $branchID = get_loggedin_branch_id();
+                        }
+                        $get_field = $this->db->where(array('form_to' => 'parents', 'branch_id' => $branchID))->get('custom_field')->result_array();
+                        $field_id = array_column($get_field, 'id');
+                        if (!empty($field_id)) {
+                            $this->db->where('relid', $row);
+                            $this->db->where_in('field_id', $field_id);
+                            $this->db->delete('custom_fields_values');
+                        }
+                    }
+
+                    if (!is_superadmin_loggedin()) {
+                        $this->db->where('branch_id', get_loggedin_branch_id());
+                    }
+                    $this->db->where_in('id', $arrayID);
+                    $this->db->delete('parent');
+                    if ($this->db->affected_rows() > 0) {
+                        $this->db->where_in('user_id', $arrayID);
+                        $this->db->where('role', 6);
+                        $this->db->delete('login_credential');
+                    }
+                    $status = 'success';
+                    $message = translate('information_deleted');
+                } else {
+                    $status = 'error';
+                    $message = translate('no_selection');
+                }
+            } else {
+                $status = 'error';
+                $message = translate('access_denied');
+            }
+            echo json_encode(array('status' => $status, 'message' => $message));
+        }
+    }
+
     // unique valid username verification is done here
     public function unique_username($username)
     {

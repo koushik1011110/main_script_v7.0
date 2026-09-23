@@ -228,8 +228,13 @@ class Dashboard_model extends CI_Model
         $this->db->select('IFNULL(SUM(h.amount), 0) as total');
         $this->db->from('fee_payment_history as h');
         if (!empty($branchID)) {
-            $this->db->join('fee_allocation as fa', 'fa.id = h.allocation_id', 'inner');
+            $this->db->join('fee_allocation as fa', 'fa.id = h.allocation_id', 'left');
+            $this->db->join('transport_fee_details as tfd', 'tfd.id = h.transport_fee_details_id', 'left');
+            $this->db->join('enroll as e', 'e.id = tfd.enroll_id', 'left');
+            $this->db->group_start();
             $this->db->where('fa.branch_id', $branchID);
+            $this->db->or_where('e.branch_id', $branchID);
+            $this->db->group_end();
         }
         return $this->db->get()->row()->total;
     }
@@ -240,8 +245,13 @@ class Dashboard_model extends CI_Model
         $this->db->from('fee_payment_history as h');
         $this->db->where('h.date', date('Y-m-d'));
         if (!empty($branchID)) {
-            $this->db->join('fee_allocation as fa', 'fa.id = h.allocation_id', 'inner');
+            $this->db->join('fee_allocation as fa', 'fa.id = h.allocation_id', 'left');
+            $this->db->join('transport_fee_details as tfd', 'tfd.id = h.transport_fee_details_id', 'left');
+            $this->db->join('enroll as e', 'e.id = tfd.enroll_id', 'left');
+            $this->db->group_start();
             $this->db->where('fa.branch_id', $branchID);
+            $this->db->or_where('e.branch_id', $branchID);
+            $this->db->group_end();
         }
         return $this->db->get()->row()->total;
     }

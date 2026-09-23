@@ -7,6 +7,9 @@ class MY_Controller extends CI_Controller
     {
         parent::__construct();
 
+        // Ensure ONLY_FULL_GROUP_BY is removed from MySQL session mode (crucial for MySQL 8 on Hostinger/cPanel)
+        $this->db->query("SET SESSION sql_mode = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@@sql_mode, 'STRICT_ALL_TABLES,', ''), ',STRICT_ALL_TABLES', ''), 'STRICT_ALL_TABLES', ''), 'STRICT_TRANS_TABLES,', ''), ',STRICT_TRANS_TABLES', ''), 'STRICT_TRANS_TABLES', ''), 'ONLY_FULL_GROUP_BY,', ''), ',ONLY_FULL_GROUP_BY', ''), 'ONLY_FULL_GROUP_BY', '')");
+
         $this->output->set_header('Last-Modified: ' . gmdate("D, d M Y H:i:s") . ' GMT');
         $this->output->set_header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
         $this->output->set_header('Pragma: no-cache');
@@ -20,12 +23,14 @@ class MY_Controller extends CI_Controller
         $branchID = $this->application_model->get_branch_id();
         if (!empty($branchID)) {
             $branch = $this->db->select('currency_formats,symbol_position,symbol,currency,timezone')->where('id', $branchID)->get('branch')->row();
-            $get_config['currency'] = $branch->currency;
-            $get_config['currency_symbol'] = !empty($branch->symbol) && $branch->symbol !== '$' ? $branch->symbol : '₹';
-            $get_config['currency_formats'] = $branch->currency_formats;
-            $get_config['symbol_position'] = $branch->symbol_position;
-            if (!empty($branch->timezone)) {
-                $get_config['timezone'] = $branch->timezone;
+            if (!empty($branch) && is_object($branch)) {
+                $get_config['currency'] = $branch->currency;
+                $get_config['currency_symbol'] = !empty($branch->symbol) && $branch->symbol !== '$' ? $branch->symbol : '₹';
+                $get_config['currency_formats'] = $branch->currency_formats;
+                $get_config['symbol_position'] = $branch->symbol_position;
+                if (!empty($branch->timezone)) {
+                    $get_config['timezone'] = $branch->timezone;
+                }
             }
         }
         if (empty($get_config['currency_symbol']) || $get_config['currency_symbol'] === '$') {
@@ -62,13 +67,25 @@ class MY_Controller extends CI_Controller
     public function photoHandleUpload($str, $fields)
     {
         $allowedExts = array_map('trim', array_map('strtolower', explode(',', $this->data['global_config']['image_extension'])));
+        if (!in_array('webp', $allowedExts)) {
+            $allowedExts[] = 'webp';
+        }
         $allowedSizeKB = $this->data['global_config']['image_size'];
         $allowedSize = floatval(1024 * $allowedSizeKB);
         if (isset($_FILES["$fields"]) && !empty($_FILES["$fields"]['name'])) {
+            if (isset($_FILES["$fields"]['error']) && $_FILES["$fields"]['error'] !== UPLOAD_ERR_OK) {
+                if ($_FILES["$fields"]['error'] == UPLOAD_ERR_INI_SIZE || $_FILES["$fields"]['error'] == UPLOAD_ERR_FORM_SIZE) {
+                    $this->form_validation->set_message('photoHandleUpload', translate('file_size_shoud_be_less_than') . " $allowedSizeKB KB.");
+                    return false;
+                }
+                $this->form_validation->set_message('photoHandleUpload', translate('error_reading_the_file'));
+                return false;
+            }
             $file_size = $_FILES["$fields"]["size"];
             $file_name = $_FILES["$fields"]["name"];
             $extension = pathinfo($file_name, PATHINFO_EXTENSION);
-            if ($files = filesize($_FILES["$fields"]['tmp_name'])) {
+            if (!empty($_FILES["$fields"]['tmp_name']) && file_exists($_FILES["$fields"]['tmp_name'])) {
+                $files = filesize($_FILES["$fields"]['tmp_name']);
                 if (!in_array(strtolower($extension), $allowedExts)) {
                     $this->form_validation->set_message('photoHandleUpload', translate('this_file_type_is_not_allowed'));
                     return false;
@@ -83,6 +100,7 @@ class MY_Controller extends CI_Controller
             }
             return true;
         }
+        return true;
     }
 
     public function fileHandleUpload($str, $fields)

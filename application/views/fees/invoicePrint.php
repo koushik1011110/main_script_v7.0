@@ -131,12 +131,12 @@ if ($len > 0) {
 					<td><?php 
 						$status = 0;
 						$labelmode = '';
-						if($type_amount == 0) {
-							$status = translate('unpaid');
-							$labelmode = 'label-danger-custom';
-						} elseif($balance == 0) {
+						if($balance == 0) {
 							$status = translate('total_paid');
 							$labelmode = 'label-success-custom';
+						} elseif($type_amount == 0 && $type_discount == 0) {
+							$status = translate('unpaid');
+							$labelmode = 'label-danger-custom';
 						} else {
 							$status = translate('partly_paid');
 							$labelmode = 'label-info-custom';
@@ -179,12 +179,12 @@ foreach ($transport_fees as $key => $value) {
 						<td><?php 
 							$status = 0;
 							$labelmode = '';
-							if($type_amount == 0) {
-								$status = translate('unpaid');
-								$labelmode = 'label-danger-custom';
-							} elseif($balance == 0) {
+							if($balance == 0) {
 								$status = translate('total_paid');
 								$labelmode = 'label-success-custom';
+							} elseif($type_amount == 0 && $type_discount == 0) {
+								$status = translate('unpaid');
+								$labelmode = 'label-danger-custom';
 							} else {
 								$status = translate('partly_paid');
 								$labelmode = 'label-info-custom';

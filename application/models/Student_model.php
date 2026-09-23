@@ -11,6 +11,18 @@ class Student_model extends MY_Model
         parent::__construct();
     }
 
+    public function safe_date_convert($date_str)
+    {
+        if (empty($date_str)) {
+            return "";
+        }
+        $d = DateTime::createFromFormat('d-m-Y', trim($date_str));
+        if ($d && $d->format('d-m-Y') === trim($date_str)) {
+            return $d->format('Y-m-d');
+        }
+        return date("Y-m-d", strtotime($date_str));
+    }
+
     // moderator student all information
     public function save($data = array(), $getBranch = array())
     {
@@ -28,13 +40,29 @@ class Student_model extends MY_Model
             $previous_details = json_encode($previous_details);
         }
 
+        // document upload handling
+        $doc_name = $this->input->post('old_document_file');
+        $new_doc_uploaded = false;
+        $doc_orig_name = '';
+        if (isset($_FILES["document_file"]) && !empty($_FILES["document_file"]['name'])) {
+            $config['upload_path'] = './uploads/attachments/documents/';
+            $config['allowed_types'] = '*';
+            $config['encrypt_name'] = true;
+            $this->upload->initialize($config);
+            if ($this->upload->do_upload("document_file")) {
+                $doc_orig_name = $this->upload->data('orig_name');
+                $doc_name = $this->upload->data('file_name');
+                $new_doc_uploaded = true;
+            }
+        }
+
         $inser_data1 = array(
             'register_no' => $this->input->post('register_no'),
-            'admission_date' => (!empty($data['admission_date']) ? date("Y-m-d", strtotime($data['admission_date'])) : ""),
+            'admission_date' => (!empty($data['admission_date']) ? $this->safe_date_convert($data['admission_date']) : ""),
             'first_name' => $this->input->post('first_name'),
             'last_name' => $this->input->post('last_name'),
             'gender' => $this->input->post('gender'),
-            'birthday' => (!empty($data['birthday']) ? date("Y-m-d", strtotime($data['birthday'])) : ""),
+            'birthday' => (!empty($data['birthday']) ? $this->safe_date_convert($data['birthday']) : ""),
             'religion' => $this->input->post('religion'),
             'caste' => $this->input->post('caste'),
             'blood_group' => $this->input->post('blood_group'),
@@ -44,6 +72,7 @@ class Student_model extends MY_Model
             'city' => $this->input->post('city'),
             'state' => $this->input->post('state'),
             'mobileno' => $this->input->post('mobileno'),
+            'aadhar_card' => $this->input->post('aadhar_card'),
             'category_id' => (isset($data['category_id']) ? $data['category_id'] : 0),
             'email' => $this->input->post('email'),
             'parent_id' => $this->input->post('parent_id'),
@@ -54,6 +83,7 @@ class Student_model extends MY_Model
             'room_id' => $roomID,
             'previous_details' => $previous_details,
             'photo' => $this->uploadImage('student'),
+            'doc' => (!empty($doc_name) ? $doc_name : ""),
         );
 
         // moderator guardian all information
@@ -107,6 +137,19 @@ class Student_model extends MY_Model
             $this->db->insert('student', $inser_data1);
             $student_id = $this->db->insert_id();
 
+            if ($new_doc_uploaded && !empty($doc_name)) {
+                $doc_entry = array(
+                    'student_id' => $student_id,
+                    'title' => 'Aadhar Card / Document',
+                    'type' => 'Aadhar Card',
+                    'file_name' => $doc_orig_name,
+                    'enc_name' => $doc_name,
+                    'remarks' => 'Uploaded during admission',
+                    'created_at' => date('Y-m-d H:i:s')
+                );
+                $this->db->insert('student_documents', $doc_entry);
+            }
+
             // save student login credential information in the database
             if ($getBranch['stu_generate'] == 1) {
                 $stu_username = $getBranch['stu_username_prefix'] . $student_id;
@@ -150,10 +193,24 @@ class Student_model extends MY_Model
             $this->db->where('id', $data['student_id']);
             $this->db->update('student', $inser_data1);
 
+            if ($new_doc_uploaded && !empty($doc_name)) {
+                $doc_entry = array(
+                    'student_id' => $data['student_id'],
+                    'title' => 'Aadhar Card / Document',
+                    'type' => 'Aadhar Card',
+                    'file_name' => $doc_orig_name,
+                    'enc_name' => $doc_name,
+                    'remarks' => 'Updated document',
+                    'created_at' => date('Y-m-d H:i:s')
+                );
+                $this->db->insert('student_documents', $doc_entry);
+            }
+
             // update login credential information in the database
             $this->db->where('user_id', $data['student_id']);
             $this->db->where('role', 7);
             $this->db->update('login_credential', array('username' => $data['username']));
+            return $data['student_id'];
         }
     }
 
@@ -214,7 +271,7 @@ class Student_model extends MY_Model
             'last_name' => $row['LastName'],
             'blood_group' => $row['BloodGroup'],
             'gender' => $row['Gender'],
-            'birthday' => date("Y-m-d", strtotime($row['Birthday'])),
+            'birthday' => $this->safe_date_convert($row['Birthday']),
             'mother_tongue' => $row['MotherTongue'],
             'religion' => $row['Religion'],
             'parent_id' => $parentID,
@@ -225,7 +282,7 @@ class Student_model extends MY_Model
             'current_address' => $row['PresentAddress'],
             'permanent_address' => $row['PermanentAddress'],
             'category_id' => $row['CategoryID'],
-            'admission_date' => date("Y-m-d", strtotime($row['AdmissionDate'])),
+            'admission_date' => $this->safe_date_convert($row['AdmissionDate']),
             'register_no' => $row['RegisterNo'],
             'photo' => 'defualt.png',
             'email' => $row['StudentEmail'],
@@ -330,6 +387,7 @@ class Student_model extends MY_Model
         $this->db->or_like('s.email', $search_text);
         $this->db->or_like('e.roll', $search_text);
         $this->db->or_like('s.blood_group', $search_text);
+        $this->db->or_like('s.aadhar_card', $search_text);
         $this->db->or_like('sp.name', $search_text);
         $this->db->group_end();
         $this->db->order_by('s.id', 'desc');

@@ -378,8 +378,17 @@ class Card_manage_model extends MY_Model
         $html .= '</thead>';
         $html .= '<tbody>';
         $timetables = $this->timetable_model->getExamTimetableByModal($examID, $classID, $sectionID, $branchID);
-        if (count($timetables->result_array())) {
-            foreach ($timetables->result_array() as $row):
+        $timetable_array = $timetables->result_array();
+        if (count($timetable_array)) {
+            usort($timetable_array, function ($a, $b) {
+                $t1 = strtotime($a['exam_date'] . ' ' . $a['time_start']);
+                $t2 = strtotime($b['exam_date'] . ' ' . $b['time_start']);
+                if ($t1 == $t2) {
+                    return 0;
+                }
+                return ($t1 < $t2) ? -1 : 1;
+            });
+            foreach ($timetable_array as $row):
                 $html .= '<tr>';
                 $html .= '<td>' . $row['subject_name'] . '</td>';
                 $html .= '<td>' . _d($row['exam_date']) . '</td>';

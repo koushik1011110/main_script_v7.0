@@ -60,6 +60,9 @@ class School_settings extends Admin_Controller
                 $this->form_validation->set_rules('reg_prefix_digit', translate('register_no') . " " . translate('digit'), 'trim|required');
             }
             $this->form_validation->set_rules('weekends[]', translate('weekends'), 'trim|required');
+            $this->form_validation->set_rules('whatsapp_api_url', translate('whatsapp_api_url'), 'trim');
+            $this->form_validation->set_rules('whatsapp_api_key', translate('whatsapp_api_key'), 'trim');
+            $this->form_validation->set_rules('whatsapp_template_name', translate('template_name'), 'trim');
 
             if ($this->form_validation->run() == true) {
 
@@ -784,10 +787,40 @@ class School_settings extends Admin_Controller
             ),
         );
         $this->data['whatsapp'] = $this->school_model->get('whatsapp_chat', array('branch_id' => $branchID), true);
+        $this->data['school'] = $this->school_model->get('branch', array('id' => $branchID), true);
         $this->data['sub_page'] = 'school_settings/whatsapp_settings';
         $this->data['main_menu'] = 'school_m';
         $this->data['title'] = translate('whatsapp_settings');
         $this->load->view('layout/index', $this->data);
+    }
+
+    public function saveWhatsappApiConfig()
+    {
+        if (!get_permission('whatsapp_config', 'is_add') && !get_permission('school_settings', 'is_edit')) {
+            ajax_access_denied();
+        }
+        $branchID = $this->school_model->getBranchID();
+        $this->form_validation->set_rules('whatsapp_api_url', translate('whatsapp_api_url'), 'trim|required');
+        $this->form_validation->set_rules('whatsapp_api_key', translate('whatsapp_api_key'), 'trim|required');
+        if ($this->form_validation->run() !== false) {
+            $arrayConfig = array(
+                'whatsapp_status' => isset($_POST['whatsapp_status']) ? intval($this->input->post('whatsapp_status')) : 1,
+                'whatsapp_api_url' => trim($this->input->post('whatsapp_api_url')),
+                'whatsapp_api_key' => trim($this->input->post('whatsapp_api_key')),
+                'whatsapp_template_name' => trim($this->input->post('whatsapp_template_name')),
+                'whatsapp_student_notification' => isset($_POST['whatsapp_student_notification']) ? 1 : 0,
+                'whatsapp_parent_notification' => isset($_POST['whatsapp_parent_notification']) ? 1 : 0,
+            );
+            $this->db->where('id', $branchID);
+            $this->db->update('branch', $arrayConfig);
+            $message = translate('the_configuration_has_been_updated');
+            set_alert('success', $message);
+            $array = array('status' => 'success', 'message' => $message);
+        } else {
+            $error = $this->form_validation->error_array();
+            $array = array('status' => 'fail', 'error' => $error);
+        }
+        echo json_encode($array);
     }
 
     public function saveWhatsappConfig()

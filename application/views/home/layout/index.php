@@ -21,7 +21,7 @@
 		<link rel="stylesheet" href="<?php echo base_url('assets/vendor/bootstrap-datepicker/css/bootstrap-datepicker.standalone.css'); ?>">
 		<link rel="stylesheet" href="<?php echo base_url('assets/vendor/bootstrap-fileupload/bootstrap-fileupload.min.css'); ?>">
 		<link rel="stylesheet" href="<?php echo base_url('assets/frontend/plugins/magnific-popup/magnific-popup.css'); ?>">
-		<link rel="stylesheet" href="<?php echo base_url('assets/frontend/css/style.css'); ?>">
+		<link rel="stylesheet" href="<?php echo base_url('assets/frontend/css/style.css?v=7.0.1'); ?>">
 		<script src="<?php echo base_url('assets/vendor/jquery/jquery.min.js'); ?>"></script>
 		<!-- If user have enabled CSRF proctection this function will take care of the ajax requests and append custom header for CSRF -->
 		<script type="text/javascript">

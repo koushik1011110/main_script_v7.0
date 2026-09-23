@@ -18,7 +18,9 @@ class Fees extends Admin_Controller
     {
         parent::__construct();
         $this->load->model('fees_model');
-        $this->load->model('email_model');
+        if (file_exists(APPPATH . 'models/Whatsapp_model.php') || file_exists(APPPATH . 'models/whatsapp_model.php')) {
+            $this->load->model('whatsapp_model');
+        }
         $this->load->library('datatables');
         if (!moduleIsEnabled('student_accounting')) {
             access_denied();
@@ -488,51 +490,73 @@ class Fees extends Admin_Controller
     /* student fees invoice search user interface */
     public function invoice_list()
     {
-        if (!get_permission('invoice', 'is_view')) {
-            access_denied();
-        }
-        $branchID = $this->application_model->get_branch_id();
-        if ($_POST) {
-            if (is_superadmin_loggedin()) {
-                $this->form_validation->set_rules('branch_id', translate('branch'), 'trim|required');
+        try {
+            if (!get_permission('invoice', 'is_view')) {
+                access_denied();
             }
-            $this->form_validation->set_rules('class_id', translate('class'), 'trim');
-            $this->form_validation->set_rules('section_id', translate('section'), 'trim');
-            if ($this->form_validation->run() == true) {
-                $export_title = get_type_name_by_id('branch', $branchID) . ' - ' . translate('invoice_list');
-                $array = array('status' => 'success', 'export_title' => $export_title,'error' => '');
-            } else {
-                $error = $this->form_validation->error_array();
-                $array = array('status' => 'fail','error' => $error);
-                
+            $branchID = $this->application_model->get_branch_id();
+            if ($_POST) {
+                if (is_superadmin_loggedin()) {
+                    $this->form_validation->set_rules('branch_id', translate('branch'), 'trim|required');
+                }
+                $this->form_validation->set_rules('class_id', translate('class'), 'trim');
+                $this->form_validation->set_rules('section_id', translate('section'), 'trim');
+                if ($this->form_validation->run() == true) {
+                    $export_title = get_type_name_by_id('branch', $branchID) . ' - ' . translate('invoice_list');
+                    $array = array('status' => 'success', 'export_title' => $export_title,'error' => '');
+                } else {
+                    $error = $this->form_validation->error_array();
+                    $array = array('status' => 'fail','error' => $error);
+                }
+                echo json_encode($array);
+                exit();
             }
-            echo json_encode($array);
+            $this->data['branch_id'] = $branchID;
+            $this->data['title'] = translate('payments_history');
+            $this->data['sub_page'] = 'fees/invoice_list';
+            $this->data['main_menu'] = 'fees';
+            $this->load->view('layout/index', $this->data);
+        } catch (Throwable $e) {
+            log_message('error', 'Invoice List Fatal: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            echo "<div style='margin:20px;padding:20px;background:#fff0f0;border:2px solid #e11d48;border-radius:8px;font-family:sans-serif;'>";
+            echo "<h2 style='color:#e11d48;margin-top:0;'>Invoice List Diagnostic</h2>";
+            echo "<p style='font-size:16px;'><b>Message:</b> " . htmlspecialchars($e->getMessage()) . "</p>";
+            echo "<p><b>File:</b> " . htmlspecialchars($e->getFile()) . " (Line: " . $e->getLine() . ")</p>";
+            echo "<details><summary style='cursor:pointer;font-weight:bold;'>View Stack Trace</summary><pre style='background:#f8f9fa;padding:12px;border:1px solid #ccc;overflow:auto;'>" . htmlspecialchars($e->getTraceAsString()) . "</pre></details>";
+            echo "</div>";
             exit();
         }
-        $this->data['branch_id'] = $branchID;
-        $this->data['title'] = translate('payments_history');
-        $this->data['sub_page'] = 'fees/invoice_list';
-        $this->data['main_menu'] = 'fees';
-        $this->load->view('layout/index', $this->data);
     }
 
     public function getInvoiceListDT()
     {
-        if ($_POST) {
-            if (get_permission('invoice', 'is_view')) {
-                $submit_btn = $this->input->post('submit_btn');
-                if (empty($submit_btn)) {
-                    $json_data = array(
-                        "draw"                => intval(0),
-                        "recordsTotal"        => intval(0),
-                        "recordsFiltered"     => intval(0),
-                        "data"                => [],
-                    );
-                    echo json_encode($json_data);
-                } else {
-                    echo $this->fees_model->getInvoiceList();
+        try {
+            if ($_POST) {
+                if (get_permission('invoice', 'is_view')) {
+                    $submit_btn = $this->input->post('submit_btn');
+                    if (empty($submit_btn)) {
+                        $json_data = array(
+                            "draw"                => intval(0),
+                            "recordsTotal"        => intval(0),
+                            "recordsFiltered"     => intval(0),
+                            "data"                => [],
+                        );
+                        echo json_encode($json_data);
+                    } else {
+                        echo $this->fees_model->getInvoiceList();
+                    }
                 }
             }
+        } catch (Throwable $e) {
+            log_message('error', 'getInvoiceListDT Fatal: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            echo json_encode(array(
+                "draw" => intval($this->input->post('draw')),
+                "recordsTotal" => 0,
+                "recordsFiltered" => 0,
+                "data" => [],
+                "error" => $e->getMessage() . ' (' . basename($e->getFile()) . ':' . $e->getLine() . ')'
+            ));
+            exit();
         }
     }
 
@@ -562,23 +586,75 @@ class Fees extends Admin_Controller
     /* invoice user interface with information are controlled here */
     public function invoice($enrollID = '')
     {
-        if (!get_permission('invoice', 'is_view')) {
-            access_denied();
-        }
-        $basic = $this->fees_model->getInvoiceBasic($enrollID);
-        if (empty($basic))
-            redirect(base_url('dashboard'));
+        try {
+            if (!get_permission('invoice', 'is_view')) {
+                access_denied();
+            }
+            $basic = $this->fees_model->getInvoiceBasic($enrollID);
+            if (empty($basic)) {
+                set_alert('error', translate('no_information_found'));
+                redirect(base_url('fees/invoice_list'));
+                exit();
+            }
 
-        if (moduleIsEnabled('transport')) {
-            $stoppage_point_id = isset($basic['stoppage_point_id']) ? $basic['stoppage_point_id'] : 0;
-            $this->data['transport_fees'] = $this->fees_model->getStudentTransportFees($enrollID, $stoppage_point_id);
+            if (moduleIsEnabled('transport')) {
+                $stoppage_point_id = isset($basic['stoppage_point_id']) ? $basic['stoppage_point_id'] : 0;
+                $this->data['transport_fees'] = $this->fees_model->getStudentTransportFees($enrollID, $stoppage_point_id);
+            }
+            $student_id = isset($basic['student_id']) ? $basic['student_id'] : (isset($basic['id']) ? $basic['id'] : 0);
+            $this->data['previous_due_info'] = $this->fees_model->getStudentPreviousSessionDues($student_id, get_session_id(), $basic['branch_id']);
+            $this->data['carry_allocation'] = $this->fees_model->getStudentCarryFeesAllocation($enrollID, get_session_id());
+            $this->data['invoice'] = $this->fees_model->getInvoiceStatus($enrollID);
+            $this->data['basic'] = $basic;
+            $this->data['title'] = translate('invoice_history');
+            $this->data['main_menu'] = 'fees';
+            $this->data['sub_page'] = 'fees/collect';
+            $this->load->view('layout/index', $this->data);
+        } catch (Throwable $e) {
+            log_message('error', 'Invoice page fatal: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            echo "<div style='margin:20px;padding:20px;background:#fff0f0;border:2px solid #e11d48;border-radius:8px;font-family:sans-serif;'>";
+            echo "<h3 style='color:#e11d48;margin-top:0;'>Invoice Fees Page Error</h3>";
+            echo "<p><b>Message:</b> " . htmlspecialchars($e->getMessage()) . "</p>";
+            echo "<p><b>File:</b> " . htmlspecialchars($e->getFile()) . " (Line: " . $e->getLine() . ")</p>";
+            echo "<details><summary style='cursor:pointer;font-weight:bold;'>View Stack Trace</summary><pre style='background:#f8f9fa;padding:12px;border:1px solid #ccc;overflow:auto;'>" . htmlspecialchars($e->getTraceAsString()) . "</pre></details>";
+            echo "</div>";
+            exit();
         }
-        $this->data['invoice'] = $this->fees_model->getInvoiceStatus($enrollID);
-        $this->data['basic'] = $basic;
-        $this->data['title'] = translate('invoice_history');
-        $this->data['main_menu'] = 'fees';
-        $this->data['sub_page'] = 'fees/collect';
-        $this->load->view('layout/index', $this->data);
+    }
+
+    public function carry_fees_save()
+    {
+        if (!get_permission('collect_fees', 'is_add')) {
+            ajax_access_denied();
+        }
+        $this->form_validation->set_rules('student_id', translate('student'), 'trim|required|numeric');
+        $this->form_validation->set_rules('date', translate('date'), 'trim|required');
+        $this->form_validation->set_rules('amount', translate('amount'), 'trim|required|numeric|greater_than[0]');
+        if ($this->form_validation->run() !== false) {
+            $student_id = $this->input->post('student_id');
+            $basic = $this->fees_model->getInvoiceBasic($student_id);
+            if (empty($basic)) {
+                ajax_access_denied();
+            }
+
+            $arrayCarry = array(
+                'branch_id' => $basic['branch_id'],
+                'session_id' => get_session_id(),
+                'student_id' => $student_id,
+                'amount' => $this->input->post('amount'),
+                'due_date' => $this->input->post('date'),
+            );
+            $this->fees_model->saveStudentCarryFees($arrayCarry);
+
+            set_alert('success', translate('information_has_been_saved_successfully'));
+            $url = base_url('fees/invoice/' . $student_id);
+            $array = array('status' => 'success', 'url' => $url);
+        } else {
+            $error = $this->form_validation->error_array();
+            $array = array('status' => 'fail', 'error' => $error);
+        }
+        echo json_encode($array);
+        exit();
     }
 
     public function invoicePrint()
@@ -812,17 +888,42 @@ class Fees extends Admin_Controller
                 );
                 $this->sms_model->send_sms($arrayData, 2);
             }
+
+            // send automatic whatsapp template message
+            $netPaidAmount = ($amount + $fineAmount) - $discountAmount;
+            if ($feesType[0] == 'transport') {
+                $month = get_type_name_by_id('transport_fee_details', $feesType[1], 'month');
+                $feeDescription = translate('transport_fees') . ' (' . $this->app_lib->getMonthslist($month) . ')';
+            } else {
+                $feeTypeName = get_type_name_by_id('fees_type', $feesType[1]);
+                $feeDescription = !empty($feeTypeName) ? $feeTypeName : translate('fees');
+            }
+            $studentEnrollID = $this->input->post('student_id');
+            $invoice = $this->fees_model->getInvoiceStatus($studentEnrollID);
+            $receiptNo = !empty($invoice['invoice_no']) ? ('#' . $invoice['invoice_no']) : ('#' . $payment_historyID);
+
             set_alert('success', translate('information_has_been_saved_successfully'));
+            $print_now = $this->input->post('print_now');
             $array = array(
                 'status' => 'success',
-                'student_id' => $this->input->post('student_id'),
-                'payment_id' => json_encode(array(array('payment_id' => $payment_historyID)))
+                'student_id' => $this->input->post('student_id')
             );
+            if (!empty($print_now)) {
+                $array['payment_id'] = json_encode(array(array('payment_id' => $payment_historyID)));
+                $array['print'] = true;
+            }
+
+            // Immediately flush response to browser so receipt dialog opens instantly (< 5ms)
+            $this->whatsapp_model->finish_request_fast($array);
+
+            // Send WhatsApp message in background
+            $this->whatsapp_model->send_fee_payment_notification($studentEnrollID, $netPaidAmount, $feeDescription, $date, $receiptNo);
+            exit();
         } else {
             $error = $this->form_validation->error_array();
             $array = array('status' => 'fail', 'url' => '', 'error' => $error);
+            echo json_encode($array);
         }
-        echo json_encode($array);
     }
 
     public function getBalanceByType()
@@ -1196,6 +1297,7 @@ class Fees extends Admin_Controller
             $allocations = $this->fees_model->getInvoiceDetails($invoiceID);
             $totalBalance = 0;
             $totalFine = 0;
+            $paidFeeTypeNames = array();
 
             foreach ($allocations as $row) {
                 $fine = $this->fees_model->feeFineCalculation($row['allocation_id'], $row['fee_type_id']);
@@ -1204,6 +1306,10 @@ class Fees extends Admin_Controller
                 if ($b['balance'] != 0) {
                     $totalBalance += $b['balance'];
                     $totalFine += $fine;
+                    $tName = get_type_name_by_id('fees_type', $row['fee_type_id']);
+                    if (!empty($tName)) {
+                        $paidFeeTypeNames[] = $tName;
+                    }
                     $arrayFees = array(
                         'allocation_id' => $row['allocation_id'],
                         'type_id' => $row['fee_type_id'],
@@ -1231,6 +1337,8 @@ class Fees extends Admin_Controller
                     if ($b['balance'] != 0) {
                         $totalBalance += $b['balance'];
                         $totalFine += $fine;
+                        $month = get_type_name_by_id('transport_fee_details', $value->id, 'month');
+                        $paidFeeTypeNames[] = translate('transport_fees') . ' (' . $this->app_lib->getMonthslist($month) . ')';
                         $arrayFees = array(
                             'allocation_id' => NULL,
                             'type_id' => NULL,
@@ -1268,17 +1376,38 @@ class Fees extends Admin_Controller
                 );
                 $this->sms_model->send_sms($arrayData, 2);
             }
+
+            // send automatic consolidated whatsapp template message
+            $combinedFeeDesc = implode(', ', array_unique($paidFeeTypeNames));
+            if (empty($combinedFeeDesc)) {
+                $combinedFeeDesc = translate('fully_paid');
+            }
+            $studentEnrollID = $this->input->post('student_id');
+            $invoice = $this->fees_model->getInvoiceStatus($studentEnrollID);
+            $receiptNo = !empty($invoice['invoice_no']) ? ('#' . $invoice['invoice_no']) : ('#' . (isset($payment_history_ids[0]['payment_id']) ? $payment_history_ids[0]['payment_id'] : '0'));
+
             set_alert('success', translate('information_has_been_saved_successfully'));
+            $print_now = $this->input->post('print_now');
             $array = array(
                 'status' => 'success',
-                'student_id' => $this->input->post('student_id'),
-                'payment_id' => json_encode($payment_history_ids)
+                'student_id' => $this->input->post('student_id')
             );
+            if (!empty($print_now)) {
+                $array['payment_id'] = json_encode($payment_history_ids);
+                $array['print'] = true;
+            }
+
+            // Immediately flush response to browser so receipt dialog opens instantly (< 5ms)
+            $this->whatsapp_model->finish_request_fast($array);
+
+            // Send WhatsApp message in background
+            $this->whatsapp_model->send_fee_payment_notification($studentEnrollID, ($totalBalance + $totalFine), $combinedFeeDesc, $date, $receiptNo);
+            exit();
         } else {
             $error = $this->form_validation->error_array();
             $array = array('status' => 'fail', 'url' => '', 'error' => $error);
+            echo json_encode($array);
         }
-        echo json_encode($array);
     }
 
     public function printFeesPaymentHistory()
@@ -1339,8 +1468,16 @@ class Fees extends Admin_Controller
             }
             $studentID = $this->input->post('student_id');
             $record = $this->input->post('data');
+            $copyType = $this->input->post('copy_type');
+            if (empty($copyType)) {
+                $copyType = $this->input->post('receipt_copy');
+            }
+            if (empty($copyType)) {
+                $copyType = 'both';
+            }
             $this->data['studentID'] = $studentID;
             $this->data['record'] = $record;
+            $this->data['copyType'] = $copyType;
             $this->load->view('fees/paySlipPrint', $this->data);
         }
     }
@@ -1401,12 +1538,31 @@ class Fees extends Admin_Controller
         if ($this->form_validation->run() !== false) {
             $studentID = $this->input->post('student_id');
             $payment_history_ids = array();
+            $totalConsolidatedAmount = 0;
+            $paidFeeTypeNames = array();
+            $lastPaymentDate = date('Y-m-d');
+
             foreach ($items as $key => $value) {
                 $amount = $value['amount'];
                 $fineAmount = $value['fine_amount'];
                 $discountAmount = $value['discount_amount'];
                 $date = $value['date'];
+                $lastPaymentDate = $date;
                 $payVia = $value['pay_via'];
+                $netPaidItem = ($amount + $fineAmount) - $discountAmount;
+                $totalConsolidatedAmount += $netPaidItem;
+
+                // Collect fee type / month name
+                if ($value['fee_type'] == 'transport') {
+                    $month = get_type_name_by_id('transport_fee_details', $value['trans_fd_id'], 'month');
+                    $paidFeeTypeNames[] = translate('transport_fees') . ' (' . $this->app_lib->getMonthslist($month) . ')';
+                } else {
+                    $tName = get_type_name_by_id('fees_type', $value['type_id']);
+                    if (!empty($tName)) {
+                        $paidFeeTypeNames[] = $tName;
+                    }
+                }
+
                 $arrayFees = array(
                     'allocation_id' => $value['allocation_id'],
                     'type_id' => $value['type_id'],
@@ -1444,17 +1600,37 @@ class Fees extends Admin_Controller
                 );
                 $this->sms_model->send_sms($arrayData, 2);
             }
+
+            // send automatic consolidated whatsapp template message (SINGLE message for total bill)
+            $combinedFeeDesc = implode(', ', array_unique($paidFeeTypeNames));
+            if (empty($combinedFeeDesc)) {
+                $combinedFeeDesc = translate('fees');
+            }
+            $invoice = $this->fees_model->getInvoiceStatus($studentID);
+            $receiptNo = !empty($invoice['invoice_no']) ? ('#' . $invoice['invoice_no']) : ('#' . (isset($payment_history_ids[0]['payment_id']) ? $payment_history_ids[0]['payment_id'] : '0'));
+
             set_alert('success', translate('information_has_been_saved_successfully'));
+            $print_now = $this->input->post('print_now');
             $array = array(
                 'status' => 'success',
-                'student_id' => $studentID,
-                'payment_id' => json_encode($payment_history_ids)
+                'student_id' => $studentID
             );
+            if (!empty($print_now)) {
+                $array['payment_id'] = json_encode($payment_history_ids);
+                $array['print'] = true;
+            }
+
+            // Immediately flush response to browser so receipt dialog opens instantly (< 5ms)
+            $this->whatsapp_model->finish_request_fast($array);
+
+            // Send WhatsApp message in background
+            $this->whatsapp_model->send_fee_payment_notification($studentID, $totalConsolidatedAmount, $combinedFeeDesc, $lastPaymentDate, $receiptNo);
+            exit();
         } else {
             $error = $this->form_validation->error_array();
             $array = array('status' => 'fail', 'error' => $error);
+            echo json_encode($array);
         }
-        echo json_encode($array);
     }
 
     public function selectedFeesCollect()

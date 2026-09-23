@@ -113,6 +113,9 @@ class Timetable_model extends MY_Model
         $this->db->where('t.class_id', $classID);
         $this->db->where('t.section_id', $sectionID);
         $this->db->where('t.session_id', $sessionID);
+        $this->db->order_by('t.exam_date', 'asc');
+        $this->db->order_by('STR_TO_DATE(t.time_start, "%h:%i %p")', 'asc', FALSE);
+        $this->db->order_by('t.time_start', 'asc');
         return $this->db->get();
     }
 

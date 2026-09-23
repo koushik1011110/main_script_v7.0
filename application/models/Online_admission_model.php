@@ -11,6 +11,18 @@ class Online_admission_model extends MY_Model
         parent::__construct();
     }
 
+    public function safe_date_convert($date_str)
+    {
+        if (empty($date_str)) {
+            return "";
+        }
+        $d = DateTime::createFromFormat('d-m-Y', trim($date_str));
+        if ($d && $d->format('d-m-Y') === trim($date_str)) {
+            return $d->format('Y-m-d');
+        }
+        return date("Y-m-d", strtotime($date_str));
+    }
+
     // moderator student all information
     public function save($data = array(), $getBranch = array())
     {
@@ -39,13 +51,30 @@ class Online_admission_model extends MY_Model
         } else {
             $previous_details = json_encode($previous_details);
         }
+
+        // document upload handling
+        $doc_name = $this->input->post('old_document_file');
+        $new_doc_uploaded = false;
+        $doc_orig_name = '';
+        if (isset($_FILES["document_file"]) && !empty($_FILES["document_file"]['name'])) {
+            $config['upload_path'] = './uploads/attachments/documents/';
+            $config['allowed_types'] = '*';
+            $config['encrypt_name'] = true;
+            $this->upload->initialize($config);
+            if ($this->upload->do_upload("document_file")) {
+                $doc_orig_name = $this->upload->data('orig_name');
+                $doc_name = $this->upload->data('file_name');
+                $new_doc_uploaded = true;
+            }
+        }
+
         $inser_data1 = array(
             'register_no' => $this->input->post('register_no'),
-            'admission_date' => (isset($data['admission_date']) ? date("Y-m-d", strtotime($data['admission_date'])) : ""),
+            'admission_date' => (isset($data['admission_date']) ? $this->safe_date_convert($data['admission_date']) : ""),
             'first_name' => $this->input->post('first_name'),
             'last_name' => $this->input->post('last_name'),
             'gender' => $this->input->post('gender'),
-            'birthday' => (isset($data['birthday']) ? date("Y-m-d", strtotime($data['birthday'])) : ""),
+            'birthday' => (isset($data['birthday']) ? $this->safe_date_convert($data['birthday']) : ""),
             'religion' => $this->input->post('religion'),
             'caste' => $this->input->post('caste'),
             'blood_group' => $this->input->post('blood_group'),
@@ -55,6 +84,7 @@ class Online_admission_model extends MY_Model
             'city' => $this->input->post('city'),
             'state' => $this->input->post('state'),
             'mobileno' => $this->input->post('mobileno'),
+            'aadhar_card' => $this->input->post('aadhar_card'),
             'category_id' => (isset($data['category_id']) ? $data['category_id'] : 0),
             'email' => $this->input->post('email'),
             'parent_id' => "",
@@ -64,6 +94,7 @@ class Online_admission_model extends MY_Model
             'room_id' => $roomID,
             'previous_details' => $previous_details,
             'photo' => $studentPhoto,
+            'doc' => (!empty($doc_name) ? $doc_name : ""),
         );
 
         // add new guardian all information in db
@@ -110,6 +141,19 @@ class Online_admission_model extends MY_Model
 
         $this->db->insert('student', $inser_data1);
         $student_id = $this->db->insert_id();
+
+        if (!empty($doc_name)) {
+            $doc_entry = array(
+                'student_id' => $student_id,
+                'title' => 'Aadhar Card / Document',
+                'type' => 'Aadhar Card',
+                'file_name' => (!empty($doc_orig_name) ? $doc_orig_name : $doc_name),
+                'enc_name' => $doc_name,
+                'remarks' => 'Online admission approved',
+                'created_at' => date('Y-m-d H:i:s')
+            );
+            $this->db->insert('student_documents', $doc_entry);
+        }
         // save student login credential information in the database
         if ($getBranch['stu_generate'] == 1) {
             $stu_username = $getBranch['stu_username_prefix'] . $student_id;

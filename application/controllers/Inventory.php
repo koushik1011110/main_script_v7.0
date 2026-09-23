@@ -36,11 +36,11 @@ class Inventory extends Admin_Controller
             $this->form_validation->set_rules('branch_id', translate('branch'), 'required');
         }
         $this->form_validation->set_rules('product_name', translate('product') . " " . translate('name'), 'trim|required');
-        $this->form_validation->set_rules('product_code', translate('product') . " " . translate('code'), 'trim|required');
+        $this->form_validation->set_rules('product_code', translate('product') . " " . translate('code'), 'trim');
         $this->form_validation->set_rules('product_category', translate('product') . " " . translate('category'), 'trim|required');
-        $this->form_validation->set_rules('purchase_unit', translate('purchase_unit'), 'trim|required|numeric');
-        $this->form_validation->set_rules('sales_unit', translate('sales_unit'), 'trim|required|numeric');
-        $this->form_validation->set_rules('unit_ratio', translate('unit_ratio'), 'trim|required|numeric');
+        $this->form_validation->set_rules('purchase_unit', translate('purchase_unit'), 'trim|numeric');
+        $this->form_validation->set_rules('sales_unit', translate('sales_unit'), 'trim|numeric');
+        $this->form_validation->set_rules('unit_ratio', translate('unit_ratio'), 'trim|numeric');
         $this->form_validation->set_rules('purchase_price', translate('purchase_price'), 'trim|required|numeric');
         $this->form_validation->set_rules('sales_price', translate('sales_price'), 'trim|required|numeric');
     }
@@ -481,8 +481,14 @@ if (is_superadmin_loggedin()) {
     {
         $id = $this->input->post('id');
         $price = $this->db->select('IFNULL(purchase_price,0) as price,purchase_unit_id')->where('id', $id)->get('product')->row_array();
-        $unit = $this->db->select('name')->where('id', $price['purchase_unit_id'])->get('product_unit')->row();
-        echo json_encode(['price' => $price['price'], 'unit' => $unit->name]);
+        $unit_name = '-';
+        if (!empty($price['purchase_unit_id'])) {
+            $unit = $this->db->select('name')->where('id', $price['purchase_unit_id'])->get('product_unit')->row();
+            if (!empty($unit)) {
+                $unit_name = $unit->name;
+            }
+        }
+        echo json_encode(['price' => $price['price'], 'unit' => $unit_name]);
     }
 
     /* purchase form validation rules */
@@ -876,8 +882,14 @@ if (is_superadmin_loggedin()) {
         if (is_superadmin_loggedin()) {
             $this->form_validation->set_rules('branch_id', translate('branch'), 'required');
         }
-        $this->form_validation->set_rules('role_id', translate('role'), 'trim|required');
-        $this->form_validation->set_rules('sale_to', translate('sale_to'), 'trim|required');
+        $is_instant_customer = ($this->input->post('role_id') === '0' || !empty($this->input->post('customer_name')) || (is_string($this->input->post('sale_to')) && substr($this->input->post('sale_to'), 0, 7) === 'custom_'));
+
+        if ($is_instant_customer) {
+            $this->form_validation->set_rules('customer_name', translate('customer_name'), 'trim|required');
+        } else {
+            $this->form_validation->set_rules('role_id', translate('role'), 'trim|required');
+            $this->form_validation->set_rules('sale_to', translate('sale_to'), 'trim|required');
+        }
         $this->form_validation->set_rules('date', translate('date'), 'trim|required');
         $this->form_validation->set_rules('bill_no', translate('bill_no'), 'trim|required|numeric');
         $this->form_validation->set_rules('payment_amount', translate('payment_amount'), 'trim|numeric|callback_sales_amount');
@@ -904,10 +916,23 @@ if (is_superadmin_loggedin()) {
         $this->data['branch_id'] = $branchID;
         $this->data['categorylist'] = $this->app_lib->getSelectByBranch('product_category', $branchID);
         $this->data['payvia_list'] = $this->app_lib->getSelectList('payment_types');
+        $this->data['productlist'] = $this->inventory_model->getProductByBranch($branchID);
         $this->data['title'] = translate('inventory');
         $this->data['sub_page'] = 'inventory/sales';
         $this->data['main_menu'] = 'inventory';
         $this->load->view('layout/index', $this->data);
+    }
+
+    public function getPosProducts()
+    {
+        $branchID = $this->input->post('branch_id');
+        if (empty($branchID)) {
+            $branchID = $this->application_model->get_branch_id();
+        }
+        $products = $this->inventory_model->getProductByBranch($branchID);
+        $categories = $this->app_lib->getSelectByBranch('product_category', $branchID);
+        $currency_symbol = $this->data['global_config']['currency_symbol'];
+        echo json_encode(['status' => 'success', 'products' => $products, 'categories' => $categories, 'currency' => $currency_symbol]);
     }
 
     public function getSaleslistDT()
@@ -932,7 +957,8 @@ if (is_superadmin_loggedin()) {
                             $labelMode = 'label-success-custom';
                         }
                         // action btn
-                        $action = '<a href="'.base_url('inventory/sales_invoice/' . $val->id).'" class="btn btn-circle icon btn-default" data-toggle="tooltip" data-original-title="'.translate('bill_view').'"> <i class="fas fa-credit-card"></i></a>';
+                        $action = '<a href="javascript:void(0);" onclick="printSalesInvoice(' . $val->id . ', this)" class="btn btn-circle icon btn-default" data-toggle="tooltip" data-original-title="' . translate('print') . '"> <i class="fas fa-print"></i></a>';
+                        $action .= '<a href="' . base_url('inventory/sales_invoice/' . $val->id) . '" class="btn btn-circle icon btn-default" data-toggle="tooltip" data-original-title="' . translate('bill_view') . '"> <i class="fas fa-credit-card"></i></a>';
                         if (get_permission('product_sales', 'is_delete')){
                             $action .= btn_delete('inventory/sales_delete/' . $val->id);
                         }
@@ -942,8 +968,9 @@ if (is_superadmin_loggedin()) {
                         $row[] = get_type_name_by_id('branch', $val->branch_id);
 }
                         $row[] = $val->bill_no;
-                        $row[] = $val->role_name;
-                        $row[] = $this->application_model->getUserNameByRoleID($val->role_id, $val->user_id)['name'];
+                        $row[] = !empty($val->role_name) ? $val->role_name : translate('customer');
+                        $cust_name = !empty($val->customer_name) ? $val->customer_name : (!empty($val->role_id) && !empty($val->user_id) ? $this->application_model->getUserNameByRoleID($val->role_id, $val->user_id)['name'] : 'Walk-in Customer');
+                        $row[] = $cust_name;
                         $row[] = "<span class='label " . $labelMode. "'>" . $status . "</span>";
                         $row[] = _d($val->date);
                         $row[] = currencyFormat($val->total - $val->discount);
@@ -979,6 +1006,7 @@ if (is_superadmin_loggedin()) {
                     'pay_via' => form_error('pay_via'),
                     'roleID' => form_error('role_id'),
                     'receiverID' => form_error('sale_to'),
+                    'customer_name' => form_error('customer_name'),
                     'date' => form_error('date'),
                 );
                 if (is_superadmin_loggedin()) {
@@ -995,10 +1023,11 @@ if (is_superadmin_loggedin()) {
                 $array = array('status' => 'fail', 'url' => '', 'error' => $msg);
             } else {
                 $data = $this->input->post();
-                $this->inventory_model->save_sales($data);
+                $sales_bill_id = $this->inventory_model->save_sales($data);
                 $url = base_url('inventory/sales');
+                $invoice_url = base_url('inventory/sales_invoice/' . $sales_bill_id);
                 set_alert('success', translate('information_has_been_saved_successfully'));
-                $array = array('status' => 'success', 'url' => $url, 'error' => '');
+                $array = array('status' => 'success', 'url' => $url, 'invoice_url' => $invoice_url, 'bill_id' => $sales_bill_id, 'error' => '');
             }
             echo json_encode($array);
         }
@@ -1008,8 +1037,14 @@ if (is_superadmin_loggedin()) {
     {
         $id = $this->input->post('id');
         $price = $this->db->select('IFNULL(sales_price,0) as salesprice,available_stock,sales_unit_id')->where('id', $id)->get('product')->row_array();
-        $unit = $this->db->select('name')->where('id', $price['sales_unit_id'])->get('product_unit')->row();
-        echo json_encode(['price' => $price['salesprice'], 'unit' => $unit->name, 'availablestock' => translate('available_stock_quantity') . " : " . $price['available_stock']]);
+        $unit_name = '-';
+        if (!empty($price['sales_unit_id'])) {
+            $unit = $this->db->select('name')->where('id', $price['sales_unit_id'])->get('product_unit')->row();
+            if (!empty($unit)) {
+                $unit_name = $unit->name;
+            }
+        }
+        echo json_encode(['price' => $price['salesprice'], 'unit' => $unit_name, 'availablestock' => translate('available_stock_quantity') . " : " . $price['available_stock']]);
     }
 
     public function saleItems()
@@ -1069,6 +1104,24 @@ if (is_superadmin_loggedin()) {
         $this->data['sub_page'] = 'inventory/sales_invoice';
         $this->data['main_menu'] = 'inventory';
         $this->load->view('layout/index', $this->data);
+    }
+
+    /* Print sales invoice directly without redirect */
+    public function invoicePrint($id = '')
+    {
+        if (!get_permission('product_sales', 'is_view')) {
+            ajax_access_denied();
+        }
+        if (empty($id)) {
+            $id = $this->input->post('id');
+        }
+        $this->data['billdata'] = $this->inventory_model->getSalesInvoice($id);
+        if (empty($this->data['billdata'])) {
+            echo '<div class="alert alert-danger">' . translate('no_information_available') . '</div>';
+            return;
+        }
+        $this->data['productlist'] = $this->inventory_model->get('sales_bill_details', array('sales_bill_id' => $id));
+        $this->load->view('inventory/sales_invoice_print', $this->data);
     }
 
     // sales partially payment add

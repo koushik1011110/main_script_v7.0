@@ -27,13 +27,15 @@
                     } else if (data.status == "access_denied") {
                         window.location.href = base_url + "dashboard";
                     } else {
-                        if (data.payment_id) {
+                        if (data.payment_id && data.print === true) {
+                            var copyType = $this.find("input[name='modal_receipt_copy']:checked").val() || $this.find("input[name='receipt_copy']:checked").val() || 'both';
                             $.ajax({
                                 url: base_url + "fees/payReceiptPrint",
                                 type: 'POST',
                                 data: {
                                     'student_id': data.student_id ? data.student_id : (typeof studentID !== 'undefined' ? studentID : 0),
-                                    'data': typeof data.payment_id === 'string' ? data.payment_id : JSON.stringify(data.payment_id)
+                                    'data': typeof data.payment_id === 'string' ? data.payment_id : JSON.stringify(data.payment_id),
+                                    'copy_type': copyType
                                 },
                                 dataType: "html",
                                 cache: false,
